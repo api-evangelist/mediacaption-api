@@ -1,0 +1,55 @@
+name: MediaCaption API
+description: >-
+  A credit-billed REST API for retrieving public YouTube transcripts, with single and bulk transcript jobs, job-level
+  webhooks, and AI transcription/translation capabilities. Backed by a public OpenAPI 3.1 contract with bearer/X-API-Key
+  authentication.
+url: https://mediacaption-api.apievangelist.com/apis.yml
+created: '2026-07-18'
+modified: '2026-07-18'
+specificationVersion: '0.21'
+tags:
+  - youtube
+  - transcription
+  - captions
+  - subtitles
+  - video
+  - rest
+  - openapi
+  - webhooks
+  - speech-to-text
+  - media
+  - developer-tools
+apis:
+  - name: Media Caption Public API
+    description: >-
+      REST API for fetching public YouTube transcripts synchronously and in bulk, with account/balance endpoints, job
+      polling, and completion webhooks. Bearer API key or X-API-Key auth.
+    humanURL: https://www.mediacaption.io/api
+    baseURL: https://api.mediacaption.io/v1
+    tags:
+      - youtube
+      - transcription
+      - captions
+      - subtitles
+      - video
+      - rest
+      - openapi
+      - webhooks
+      - speech-to-text
+      - media
+      - developer-tools
+    properties:
+      - type: OpenAPI
+        url: https://www.mediacaption.io/docs/openapi/mediacaption.v1.yaml
+      - type: Documentation
+        url: https://www.mediacaption.io/docs
+      - type: Documentation
+        url: https://www.mediacaption.io/docs/quickstart
+maintainers:
+  - FN: MediaCaption API
+    url: https://www.mediacaption.io
+generated:
+  by: apis.io/add
+  model: claude-opus-4-8
+  confidence: 95
+  at: '2026-07-18T18:19:45.114Z'
