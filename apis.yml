@@ -6,7 +6,7 @@ description: >-
 url: https://raw.githubusercontent.com/api-evangelist/mediacaption-api/refs/heads/main/apis.yml
 created: '2026-07-18'
 modified: '2026-07-18'
-specificationVersion: '0.21'
+specificationVersion: '0.23'
 tags:
   - youtube
   - transcription
