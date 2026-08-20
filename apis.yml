@@ -8,6 +8,18 @@ created: '2026-07-18'
 modified: '2026-07-18'
 specificationVersion: '0.23'
 tags:
+  - YouTube
+  - Transcription
+  - Captions
+  - Subtitles
+  - Video
+  - REST
+  - OpenAPI
+  - Webhook
+  - Speech-to-Text
+  - Media
+  - Developer Tools
+tags_raw:
   - youtube
   - transcription
   - captions
@@ -27,6 +39,18 @@ apis:
     humanURL: https://www.mediacaption.io/api
     baseURL: https://api.mediacaption.io/v1
     tags:
+      - YouTube
+      - Transcription
+      - Captions
+      - Subtitles
+      - Video
+      - REST
+      - OpenAPI
+      - Webhook
+      - Speech-to-Text
+      - Media
+      - Developer Tools
+    tags_raw:
       - youtube
       - transcription
       - captions
