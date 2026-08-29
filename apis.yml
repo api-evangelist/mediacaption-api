@@ -4,6 +4,17 @@ description: >-
   webhooks, and AI transcription/translation capabilities. Backed by a public OpenAPI 3.1 contract with bearer/X-API-Key
   authentication.
 url: https://raw.githubusercontent.com/api-evangelist/mediacaption-api/refs/heads/main/apis.yml
+deliveryModel:
+  model: unknown
+  open_source: false
+  commercial: false
+  callable_host: false
+  label: Delivery model not determined — needs a product licence on record
+  confidence: low
+  source:
+  - none
+  generated: '2026-08-28'
+  method: derived
 created: '2026-07-18'
 modified: '2026-07-18'
 specificationVersion: '0.23'
