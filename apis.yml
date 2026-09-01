@@ -21,13 +21,13 @@ specificationVersion: '0.23'
 tags:
   - YouTube
   - Transcription
-  - captions
-  - subtitles
+  - Captions
+  - Subtitles
   - Video
-  - rest
+  - REST
   - OpenAPI
   - Webhook
-  - speech-to-text
+  - Speech-to-Text
   - Media
   - Developer Tools
 tags_raw:
@@ -52,13 +52,13 @@ apis:
     tags:
       - YouTube
       - Transcription
-      - captions
-      - subtitles
+      - Captions
+      - Subtitles
       - Video
-      - rest
+      - REST
       - OpenAPI
       - Webhook
-      - speech-to-text
+      - Speech-to-Text
       - Media
       - Developer Tools
     tags_raw:
