@@ -1,0 +1,84 @@
+generated: '2026-09-03'
+method: searched
+source: https://www.mediacaption.io/docs/errors + openapi/mediacaption-api-openapi.yaml
+format: custom-envelope
+envelope:
+  shape: '{ "error": { "code": "<machine-readable code>", "message": "<human message>" } }'
+  request_id_header: X-Request-Id
+  note: >-
+    All public API errors use a stable machine-readable code and a request ID
+    header. Not RFC 9457 problem+json — a proprietary error envelope.
+problem_types:
+  - code: invalid_request
+    status: 400
+    category: request
+    title: The request body or parameters are invalid.
+  - code: missing_api_key
+    status: 401
+    category: auth
+    title: No API key was sent.
+    remediation: Send Authorization Bearer mc_live_xxx or X-API-Key.
+  - code: invalid_api_key
+    status: 401
+    category: auth
+    title: The API key is malformed, unknown, or revoked.
+  - code: sign_in_required
+    status: 403
+    category: auth
+    title: The action requires an interactive signed-in session.
+  - code: not_found
+    status: 404
+    category: request
+    title: The requested resource does not exist.
+  - code: insufficient_credits
+    status: 402
+    category: billing
+    title: The account has too few credits for the requested work.
+    remediation: Add credits; 402 is returned before processing starts, so no credits are spent.
+  - code: transcription_expired
+    status: 410
+    category: retention
+    title: The transcript content passed its 3-day retention window and is no longer retrievable.
+    remediation: Fetch or store transcript content before its expiresAt timestamp.
+  - code: webhook_not_found
+    status: 404
+    category: webhooks
+    title: The referenced webhook endpoint does not exist.
+  - code: public_api_rate_limited
+    status: 429
+    category: rate-limit
+    title: The general 60 requests/minute limit was exceeded.
+    remediation: Respect Retry-After before retrying.
+  - code: single_transcript_rate_limited
+    status: 429
+    category: rate-limit
+    title: The 10 requests/minute single-transcript limit was exceeded.
+    remediation: Use bulk jobs for volume work instead of looping POST /v1/transcripts.
+  - code: concurrent_job_limit_exceeded
+    status: 429
+    category: rate-limit
+    title: More than 5 concurrent bulk jobs for the account.
+  - code: transcript_unavailable
+    status: 422
+    category: source
+    title: The video has no retrievable transcript.
+  - code: video_unavailable
+    status: 422
+    category: source
+    title: The YouTube video is unavailable.
+  - code: geo_restricted
+    status: 422
+    category: source
+    title: The video is geo-restricted.
+  - code: youtube_blocked
+    status: 422
+    category: source
+    title: YouTube blocked the retrieval attempt.
+  - code: youtube_rate_limited
+    status: 422
+    category: source
+    title: YouTube rate-limited the retrieval attempt.
+notes: >-
+  Status-code mapping for the source/retention categories is taken from the
+  OpenAPI components/responses definitions where declared; the docs errors
+  page groups codes by family without repeating each status.

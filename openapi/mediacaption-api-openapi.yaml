@@ -1,0 +1,1539 @@
+openapi: 3.1.0
+info:
+  title: Media Caption Public API
+  version: 1.0.0
+  description: |
+    Public API for reading account and credit balance details, fetching YouTube
+    transcripts, creating bulk transcript jobs, polling jobs, retrieving retained
+    transcriptions, and receiving job-level webhooks.
+  contact:
+    name: Media Caption
+    url: https://mediacaption.io
+  license:
+    name: Proprietary
+    url: https://mediacaption.io/terms
+servers:
+  - url: https://api.mediacaption.io/v1
+    description: Production
+security:
+  - bearerApiKey: []
+  - headerApiKey: []
+tags:
+  - name: User
+    description: Authenticated account endpoints.
+  - name: Balance
+    description: Authenticated account credit balance endpoints.
+  - name: Transcripts
+    description: Synchronous and async public YouTube transcript endpoints.
+  - name: Transcriptions
+    description: Retained transcript lookup endpoints.
+  - name: Uploads
+    description: Multipart media upload and AI transcription endpoints.
+  - name: Jobs
+    description: Async job status and item result endpoints.
+  - name: Webhooks
+    description: Job-level webhook event contracts.
+paths:
+  /user:
+    get:
+      tags:
+        - User
+      summary: Fetch the authenticated user
+      description: Returns account identity and subscription state for the authenticated account. This endpoint does not consume credits.
+      operationId: getUser
+      security:
+        - bearerApiKey: []
+        - headerApiKey: []
+      responses:
+        "200":
+          description: User found
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/XRequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /balance:
+    get:
+      tags:
+        - Balance
+      summary: Fetch the authenticated user's credit balance
+      description: Returns the current credit balance for the authenticated account. This endpoint does not consume credits.
+      operationId: getBalance
+      security:
+        - bearerApiKey: []
+        - headerApiKey: []
+      responses:
+        "200":
+          description: Balance found
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/XRequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /transcripts:
+    post:
+      tags:
+        - Transcripts
+      summary: Fetch one public YouTube transcript
+      description: Synchronously fetches a public YouTube transcript, reserves 1 credit before processing, and charges 1 credit on success.
+      operationId: createTranscript
+      security:
+        - bearerApiKey: []
+        - headerApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranscriptRequest"
+            examples:
+              url:
+                value:
+                  url: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+                  language: en
+              videoId:
+                value:
+                  videoId: dQw4w9WgXcQ
+      responses:
+        "200":
+          description: Transcript fetched
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/XRequestId"
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/XRateLimitLimit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/XRateLimitRemaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/XRateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranscriptResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/InsufficientCredits"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /transcripts/bulk:
+    post:
+      tags:
+        - Transcripts
+        - Jobs
+      summary: Create a bulk public transcript job
+      description: Creates an async job for 1 to 100 public YouTube transcript lookups and requires an active dashboard webhook ID for the final job-level event. The API reserves 1 credit per item when the job is accepted and settles credits after all items finish.
+      operationId: createBulkTranscriptJob
+      security:
+        - bearerApiKey: []
+        - headerApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkTranscriptRequest"
+      responses:
+        "202":
+          description: Job accepted
+          headers:
+            Location:
+              description: Relative URL for polling the accepted job.
+              schema:
+                type: string
+                example: /v1/jobs/job_01jz7m91bxkpbqha0wt8whm76r
+            X-Request-Id:
+              $ref: "#/components/headers/XRequestId"
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/XRateLimitLimit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/XRateLimitRemaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/XRateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkTranscriptAcceptedResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/InsufficientCredits"
+        "429":
+          $ref: "#/components/responses/ConcurrentJobLimitExceeded"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /transcriptions:
+    post:
+      tags:
+        - Transcriptions
+      summary: Transcribe media already in cloud storage
+      description: |
+        Inspects the HTTPS source without persisting the media, verifies its size and
+        duration, charges the exact transcription credits, and then passes the URL
+        directly to ElevenLabs Scribe. The source must be no larger than 3 GB
+        (3,000,000,000 bytes) and remain accessible while ElevenLabs fetches it.
+      operationId: createCloudTranscription
+      security:
+        - bearerApiKey: []
+        - headerApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CloudTranscriptionRequest"
+      responses:
+        "202":
+          description: Transcription queued
+          headers:
+            Location:
+              schema:
+                type: string
+            X-Request-Id:
+              $ref: "#/components/headers/XRequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CloudTranscriptionAcceptedResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/InsufficientCredits"
+        "413":
+          description: Remote media exceeds the 3 GB limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /transcriptions/{id}:
+    get:
+      tags:
+        - Transcriptions
+      summary: Fetch a retained transcription
+      description: Fetches queued, processing, failed, or completed transcription state by account-owned access ID. Transcript bodies are retained for 3 days.
+      operationId: getTranscription
+      security:
+        - bearerApiKey: []
+        - headerApiKey: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^tr_[0-9a-fA-F-]{36}$
+          example: tr_3f6e5c6a-0d31-4f8c-9b1d-7f3b9e6a2c11
+      responses:
+        "200":
+          description: Transcription found
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/XRequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transcription"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "410":
+          $ref: "#/components/responses/TranscriptionExpired"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /jobs/{id}:
+    get:
+      tags:
+        - Jobs
+      summary: Fetch a bulk job
+      description: Returns job status, progress, credit totals, item summaries, and a cursor for additional items.
+      operationId: getJob
+      security:
+        - bearerApiKey: []
+        - headerApiKey: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^job_[A-Za-z0-9_-]+$
+          example: job_01jz7m91bxkpbqha0wt8whm76r
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Opaque cursor returned as nextCursor from the previous response.
+      responses:
+        "200":
+          description: Job found
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/XRequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /uploads:
+    post:
+      tags:
+        - Uploads
+      summary: Preflight a media upload
+      description: |
+        Reserves transcription credits before creating any storage upload. The declared
+        duration determines the initial reservation; the server measures the uploaded
+        media before transcription and reconciles the final cost. Files may be at most
+        3 GB (3,000,000,000 bytes).
+
+        End-to-end local-file flow:
+        1. Create an upload with `POST /uploads`.
+        2. For each numbered file part, request a signed URL from
+           `POST /uploads/{id}/parts`, then `PUT` that part directly to the returned
+           S3 URL and retain its `ETag` response header.
+        3. Submit the ordered part numbers and ETags to
+           `POST /uploads/{id}/complete`.
+        4. Poll `GET /uploads/{id}`. If it returns `awaiting_credits`, add credits
+           and call `POST /uploads/{id}/resume`. When it returns `completed`, fetch
+           the returned `transcriptionUrl`.
+
+        The Media Caption API key must not be sent to the signed S3 part URL.
+      operationId: createUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadRequest"
+            example:
+              filename: meeting.mp4
+              contentType: video/mp4
+              sizeBytes: 16777216
+              durationSec: 600
+      responses:
+        "201":
+          description: Credit reservation and multipart upload created
+          headers:
+            Location:
+              schema:
+                type: string
+            X-Request-Id:
+              $ref: "#/components/headers/XRequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadCreatedResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/InsufficientCredits"
+        "413":
+          description: File exceeds the 3 GB limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /uploads/{id}:
+    parameters:
+      - $ref: "#/components/parameters/UploadId"
+    get:
+      tags:
+        - Uploads
+      summary: Fetch upload and transcription status
+      operationId: getUpload
+      responses:
+        "200":
+          description: Upload found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadStatusResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags:
+        - Uploads
+      summary: Cancel an upload before processing
+      operationId: cancelUpload
+      responses:
+        "200":
+          description: Upload cancelled and reserved credits refunded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadOperationResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /uploads/{id}/parts:
+    parameters:
+      - $ref: "#/components/parameters/UploadId"
+    post:
+      tags:
+        - Uploads
+      summary: Create a signed multipart part URL
+      description: Request this immediately before uploading the numbered part. The signed URL expires after 15 minutes. Upload the raw bytes with `PUT`, without a Media Caption API key, and retain the S3 `ETag` response header.
+      operationId: createUploadPartUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadPartUrlRequest"
+      responses:
+        "200":
+          description: Signed part URL created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadPartUrlResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /uploads/{id}/complete:
+    parameters:
+      - $ref: "#/components/parameters/UploadId"
+    post:
+      tags:
+        - Uploads
+      summary: Complete upload and start transcription
+      description: Submit every part number and S3 ETag in ascending order. The API completes the S3 multipart upload, verifies the actual object size, and queues ElevenLabs Scribe transcription.
+      operationId: completeUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadCompleteRequest"
+      responses:
+        "202":
+          description: Upload accepted for transcription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadOperationResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          description: Uploaded object does not match the declared size or exceeds 3 GB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /uploads/{id}/resume:
+    parameters:
+      - $ref: "#/components/parameters/UploadId"
+    post:
+      tags:
+        - Uploads
+      summary: Resume transcription after adding credits
+      description: Rechecks the additional credits required after server-side duration measurement, then retries processing.
+      operationId: resumeUpload
+      responses:
+        "200":
+          description: Upload was already completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadOperationResponse"
+        "202":
+          description: Upload transcription resumed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadOperationResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/InsufficientCredits"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+webhooks:
+  jobCompleted:
+    post:
+      tags:
+        - Webhooks
+      summary: job.completed
+      operationId: receiveJobCompletedWebhook
+      description: Delivered once after a bulk job completes successfully.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookEvent"
+  jobCompletedWithErrors:
+    post:
+      tags:
+        - Webhooks
+      summary: job.completed_with_errors
+      operationId: receiveJobCompletedWithErrorsWebhook
+      description: Delivered once after a bulk job completes with at least one failed item.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookEvent"
+  jobFailed:
+    post:
+      tags:
+        - Webhooks
+      summary: job.failed
+      operationId: receiveJobFailedWebhook
+      description: Delivered once after a bulk job fails.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookEvent"
+components:
+  securitySchemes:
+    bearerApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Media Caption API key
+      description: "Use `Authorization: Bearer mc_live_xxx`."
+    headerApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Alternative API key header.
+  headers:
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
+    XRateLimitLimit:
+      description: Maximum requests allowed in the current fixed window.
+      schema:
+        type: integer
+        example: 60
+    XRateLimitRemaining:
+      description: Requests remaining in the current fixed window.
+      schema:
+        type: integer
+        example: 58
+    XRateLimitReset:
+      description: ISO 8601 timestamp when the current fixed window resets.
+      schema:
+        type: string
+        format: date-time
+        example: "2026-05-11T10:01:00.000Z"
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+  parameters:
+    UploadId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^upl_[0-9a-fA-F-]{36}$
+      example: upl_3f6e5c6a-0d31-4f8c-9b1d-7f3b9e6a2c11
+  responses:
+    InvalidRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missing:
+              value:
+                error:
+                  code: missing_api_key
+                  message: Missing API key.
+            invalid:
+              value:
+                error:
+                  code: invalid_api_key
+                  message: Invalid API key.
+    Forbidden:
+      description: Forbidden request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InsufficientCredits:
+      description: Not enough credits to start processing
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: insufficient_credits
+              message: Insufficient credits.
+    TranscriptionExpired:
+      description: Transcription retention window has ended
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: transcription_expired
+              message: This transcription has expired and is no longer available.
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: "#/components/headers/RetryAfter"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ConcurrentJobLimitExceeded:
+      description: Concurrent bulk job limit exceeded
+      headers:
+        Retry-After:
+          $ref: "#/components/headers/RetryAfter"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: concurrent_job_limit_exceeded
+              message: Concurrent API job limit exceeded. Please wait for active jobs to finish.
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    CloudTranscriptionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - sourceUrl
+      properties:
+        sourceUrl:
+          type: string
+          format: uri
+          maxLength: 8192
+          description: Public or presigned HTTPS URL for an existing cloud media object.
+        filename:
+          type: string
+          maxLength: 400
+          description: Optional display filename; defaults to the URL path basename.
+    CloudTranscriptionAcceptedResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - transcriptionId
+        - status
+        - sourceUrl
+        - durationSec
+        - sizeBytes
+        - requiredCredits
+        - statusUrl
+      properties:
+        transcriptionId:
+          type: string
+        status:
+          type: string
+          enum:
+            - queued
+        sourceUrl:
+          type: string
+          format: uri
+          description: Query-free source URL; signed credentials are never returned.
+        durationSec:
+          type: integer
+        sizeBytes:
+          type: integer
+          maximum: 3000000000
+        requiredCredits:
+          type: integer
+        statusUrl:
+          type: string
+    UploadRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - filename
+        - contentType
+        - sizeBytes
+        - durationSec
+      properties:
+        filename:
+          type: string
+          maxLength: 400
+          example: meeting.mp4
+        contentType:
+          type: string
+          description: An audio/* or video/* media type.
+          example: video/mp4
+        sizeBytes:
+          type: integer
+          minimum: 1
+          maximum: 3000000000
+        durationSec:
+          type: integer
+          minimum: 1
+          description: Client-measured duration used for the pre-upload credit reservation.
+    UploadCreatedResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - status
+        - requiredCredits
+        - minPartSizeBytes
+        - partUrl
+        - completeUrl
+        - statusUrl
+        - expiresAt
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+            - uploading
+        requiredCredits:
+          type: integer
+        minPartSizeBytes:
+          type: integer
+        partUrl:
+          type: string
+        completeUrl:
+          type: string
+        statusUrl:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    UploadPartUrlRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - partNumber
+      properties:
+        partNumber:
+          type: integer
+          minimum: 1
+          maximum: 10000
+    UploadPartUrlResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - partNumber
+        - uploadUrl
+        - expiresInSeconds
+      properties:
+        partNumber:
+          type: integer
+        uploadUrl:
+          type: string
+          format: uri
+        expiresInSeconds:
+          type: integer
+    UploadCompleteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - parts
+      properties:
+        parts:
+          type: array
+          minItems: 1
+          maxItems: 10000
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - partNumber
+              - etag
+            properties:
+              partNumber:
+                type: integer
+                minimum: 1
+                maximum: 10000
+              etag:
+                type: string
+    UploadOperationResponse:
+      type: object
+      additionalProperties: true
+      required:
+        - id
+        - status
+      properties:
+        id:
+          type: string
+        status:
+          $ref: "#/components/schemas/UploadStatus"
+        requiredCredits:
+          type: integer
+        additionalCredits:
+          type: integer
+    UploadStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - filename
+        - sizeBytes
+        - durationSec
+        - requiredCredits
+        - reservedCredits
+        - status
+        - progress
+        - stage
+        - error
+        - createdAt
+        - completedAt
+      properties:
+        id:
+          type: string
+        filename:
+          type:
+            - string
+            - "null"
+        sizeBytes:
+          type:
+            - integer
+            - "null"
+        durationSec:
+          type:
+            - integer
+            - "null"
+        requiredCredits:
+          type:
+            - integer
+            - "null"
+        reservedCredits:
+          type:
+            - integer
+            - "null"
+        status:
+          $ref: "#/components/schemas/UploadStatus"
+        progress:
+          type:
+            - integer
+            - "null"
+        stage:
+          type:
+            - string
+            - "null"
+        error:
+          type:
+            - string
+            - "null"
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        transcriptionId:
+          type: string
+        transcriptionUrl:
+          type: string
+    UploadStatus:
+      type: string
+      enum:
+        - initiated
+        - uploading
+        - uploaded
+        - processing
+        - awaiting_credits
+        - completed
+        - failed
+        - aborted
+    UserResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - user
+      properties:
+        user:
+          $ref: "#/components/schemas/ApiUser"
+    BalanceResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - balance
+      properties:
+        balance:
+          $ref: "#/components/schemas/CreditBalance"
+    ApiUser:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - email
+        - hasActiveSubscription
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: Media Caption user ID for the authenticated account.
+          example: user_123
+        email:
+          type: string
+          format: email
+          description: Primary account email address.
+          example: user@example.com
+        hasActiveSubscription:
+          type: boolean
+          description: Whether the account currently has an active subscription.
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp.
+    CreditBalance:
+      type: object
+      additionalProperties: false
+      required:
+        - credits
+        - subscriptionCredits
+        - bundleCredits
+        - monthlyCreditLimit
+        - monthlyCreditsRenewAt
+      properties:
+        credits:
+          type: integer
+          description: Total spendable credits across subscription and bundle pools.
+          example: 20
+        subscriptionCredits:
+          type: integer
+          description: Credits from the active subscription grant.
+          example: 12
+        bundleCredits:
+          type: integer
+          description: Purchased or granted credits that do not expire through subscription renewal.
+          example: 8
+        monthlyCreditLimit:
+          type:
+            - integer
+            - "null"
+          description: Included monthly subscription credits, or null when no active subscription limit is available.
+          example: 100
+        monthlyCreditsRenewAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Subscription credit renewal timestamp, or null when renewal details are unavailable.
+          example: "2026-06-11T10:00:00.000Z"
+    TranscriptRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        url:
+          type: string
+          format: uri
+          description: YouTube video URL. Required when videoId is omitted.
+        videoId:
+          type: string
+          description: YouTube video ID. Required when url is omitted.
+          example: dQw4w9WgXcQ
+        language:
+          $ref: "#/components/schemas/LanguageTag"
+      anyOf:
+        - required:
+            - url
+        - required:
+            - videoId
+    BulkTranscriptRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - webhookId
+        - items
+      properties:
+        webhookId:
+          type: string
+          description: "**Required** active dashboard webhook ID for one final job-level event."
+          example: wh_01jz7m8a3yk9pnx2g6bc8n4a8m
+        items:
+          type: array
+          description: "**Required** array of public transcript requests."
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/BulkTranscriptItemRequest"
+    BulkTranscriptItemRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        externalId:
+          type: string
+          description: Customer-provided item ID returned in job results and webhooks.
+        url:
+          type: string
+          format: uri
+        videoId:
+          type: string
+        language:
+          $ref: "#/components/schemas/LanguageTag"
+      anyOf:
+        - required:
+            - url
+        - required:
+            - videoId
+    LanguageTag:
+      type: string
+      pattern: ^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$
+      example: en
+    TranscriptSegment:
+      type: object
+      additionalProperties: false
+      required:
+        - startSec
+        - durationSec
+        - text
+      properties:
+        startSec:
+          type: number
+          minimum: 0
+          example: 0
+        durationSec:
+          type: number
+          minimum: 0
+          example: 2.4
+        text:
+          type: string
+          example: Example transcript text
+    TranscriptResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - transcriptionId
+        - source
+        - language
+        - durationSec
+        - expiresAt
+        - transcript
+        - creditsFrozen
+        - creditsCharged
+      properties:
+        transcriptionId:
+          type: string
+          example: tr_3f6e5c6a-0d31-4f8c-9b1d-7f3b9e6a2c11
+        source:
+          type: string
+          enum:
+            - public
+        language:
+          type: string
+          example: en
+        durationSec:
+          type: number
+          example: 184
+        expiresAt:
+          type: string
+          format: date-time
+        transcript:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranscriptSegment"
+        creditsFrozen:
+          type: integer
+          example: 1
+        creditsCharged:
+          type: integer
+          example: 1
+    BulkTranscriptAcceptedResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - jobId
+        - type
+        - status
+        - itemCount
+        - creditsFrozen
+      properties:
+        jobId:
+          type: string
+          example: job_01jz7m91bxkpbqha0wt8whm76r
+        type:
+          type: string
+          enum:
+            - public_transcripts_bulk
+        status:
+          $ref: "#/components/schemas/JobStatus"
+        itemCount:
+          type: integer
+          example: 2
+        creditsFrozen:
+          type: integer
+          example: 2
+    Transcription:
+      type: object
+      additionalProperties: false
+      required:
+        - transcriptionId
+        - source
+        - status
+        - language
+        - sourceUrl
+        - durationSec
+        - expiresAt
+        - createdAt
+        - completedAt
+        - transcript
+      properties:
+        transcriptionId:
+          type: string
+        source:
+          type: string
+          enum:
+            - public
+            - ai
+        status:
+          type: string
+          enum:
+            - queued
+            - processing
+            - completed
+            - failed
+        language:
+          type: string
+        sourceUrl:
+          type: string
+          format: uri
+        durationSec:
+          type:
+            - number
+            - "null"
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        transcript:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: "#/components/schemas/TranscriptSegment"
+        error:
+          type: string
+    Job:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - type
+        - status
+        - progress
+        - itemCount
+        - completedCount
+        - failedCount
+        - creditsFrozen
+        - creditsCharged
+        - creditsRefunded
+        - createdAt
+        - startedAt
+        - completedAt
+        - items
+        - nextCursor
+      properties:
+        id:
+          type: string
+          example: job_01jz7m91bxkpbqha0wt8whm76r
+        type:
+          type: string
+          enum:
+            - public_transcripts_bulk
+        status:
+          $ref: "#/components/schemas/JobStatus"
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        itemCount:
+          type: integer
+        completedCount:
+          type: integer
+        failedCount:
+          type: integer
+        creditsFrozen:
+          type: integer
+        creditsCharged:
+          type: integer
+        creditsRefunded:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        completedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/JobItem"
+        nextCursor:
+          type:
+            - string
+            - "null"
+    JobItem:
+      type: object
+      additionalProperties: false
+      required:
+        - externalId
+        - status
+        - sourceType
+        - sourceUrl
+        - videoId
+        - language
+        - transcriptionId
+        - durationSec
+        - creditsFrozen
+        - creditsCharged
+        - creditsRefunded
+        - createdAt
+        - completedAt
+      properties:
+        externalId:
+          type:
+            - string
+            - "null"
+        status:
+          $ref: "#/components/schemas/JobItemStatus"
+        sourceType:
+          type: string
+          enum:
+            - youtube
+        sourceUrl:
+          type:
+            - string
+            - "null"
+          format: uri
+        videoId:
+          type:
+            - string
+            - "null"
+        language:
+          type:
+            - string
+            - "null"
+        transcriptionId:
+          type:
+            - string
+            - "null"
+        durationSec:
+          type:
+            - number
+            - "null"
+        creditsFrozen:
+          type: integer
+        creditsCharged:
+          type: integer
+        creditsRefunded:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        error:
+          $ref: "#/components/schemas/ItemError"
+    JobStatus:
+      type: string
+      enum:
+        - queued
+        - processing
+        - completed
+        - completed_with_errors
+        - failed
+        - canceled
+    JobItemStatus:
+      type: string
+      enum:
+        - queued
+        - processing
+        - completed
+        - failed
+    WebhookEvent:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - type
+        - eventId
+        - eventType
+        - createdAt
+        - apiVersion
+        - data
+      properties:
+        id:
+          type: string
+          example: evt_job_01jz7m91bxkpbqha0wt8whm76r_job.completed
+        type:
+          $ref: "#/components/schemas/WebhookEventType"
+        eventId:
+          type: string
+        eventType:
+          $ref: "#/components/schemas/WebhookEventType"
+        createdAt:
+          type: string
+          format: date-time
+        apiVersion:
+          type: string
+          example: "2026-05-11"
+        livemode:
+          type: boolean
+          default: true
+        test:
+          type: boolean
+          default: false
+        data:
+          $ref: "#/components/schemas/WebhookJobData"
+    WebhookEventType:
+      type: string
+      enum:
+        - job.completed
+        - job.completed_with_errors
+        - job.failed
+    WebhookJobData:
+      type: object
+      additionalProperties: false
+      required:
+        - jobId
+        - jobType
+        - status
+        - progress
+        - itemCount
+        - completedCount
+        - failedCount
+        - creditsFrozen
+        - creditsCharged
+        - creditsReleased
+        - items
+      properties:
+        jobId:
+          type: string
+        jobType:
+          type: string
+          enum:
+            - public_transcripts_bulk
+        status:
+          $ref: "#/components/schemas/JobStatus"
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        itemCount:
+          type: integer
+        completedCount:
+          type: integer
+        failedCount:
+          type: integer
+        creditsFrozen:
+          type: integer
+        creditsCharged:
+          type: integer
+        creditsReleased:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookJobItem"
+    WebhookJobItem:
+      type: object
+      additionalProperties: false
+      required:
+        - itemId
+        - externalId
+        - status
+      properties:
+        itemId:
+          type: integer
+        externalId:
+          type:
+            - string
+            - "null"
+        status:
+          $ref: "#/components/schemas/JobItemStatus"
+        transcriptionId:
+          type: string
+        error:
+          $ref: "#/components/schemas/ItemError"
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+            - code
+            - message
+          properties:
+            code:
+              $ref: "#/components/schemas/ErrorCode"
+            message:
+              type: string
+    ItemError:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: transcript_unavailable
+        message:
+          type: string
+          example: No public transcript is available for this video.
+    ErrorCode:
+      type: string
+      enum:
+        - concurrent_job_limit_exceeded
+        - geo_restricted
+        - invalid_api_key
+        - invalid_request
+        - insufficient_credits
+        - internal_error
+        - missing_api_key
+        - not_found
+        - public_api_rate_limited
+        - single_transcript_rate_limited
+        - transcription_expired
+        - transcript_unavailable
+        - video_unavailable
+        - webhook_not_found
+        - youtube_blocked
+        - youtube_rate_limited

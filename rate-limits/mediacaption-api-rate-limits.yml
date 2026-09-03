@@ -1,0 +1,44 @@
+generated: '2026-09-03'
+method: searched
+source: https://www.mediacaption.io/docs/rate-limits
+description: >-
+  Published launch limits for the Media Caption Public API v1, with the runtime
+  rate-limit headers the OpenAPI contract declares on rate-limitable
+  operations.
+limit_count: 4
+limits:
+  - name: General API limit
+    scope: per account and API key
+    limit: 60
+    window: 1 minute
+    applies_to: all /v1 endpoints
+  - name: Single transcript endpoint
+    scope: per account and API key
+    limit: 10
+    window: 1 minute
+    applies_to: POST /v1/transcripts
+  - name: Concurrent bulk jobs
+    scope: per account
+    limit: 5
+    window: concurrent
+    applies_to: POST /v1/transcripts/bulk
+  - name: Bulk job size
+    scope: per job
+    limit: 100
+    window: per request
+    applies_to: items[] in POST /v1/transcripts/bulk
+exhaustion:
+  status_code: 429
+  error_codes:
+    - public_api_rate_limited
+    - single_transcript_rate_limited
+    - concurrent_job_limit_exceeded
+  retry_guidance: Respect Retry-After on 429 responses; use bulk jobs instead of looping over POST /v1/transcripts.
+headers:
+  - X-RateLimit-Limit
+  - X-RateLimit-Remaining
+  - X-RateLimit-Reset
+  - Retry-After
+notes: >-
+  Headers are declared in the OpenAPI contract (components/headers) on
+  rate-limitable operations; the docs label these values "launch limits".

@@ -1,0 +1,36 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Media Caption Public API
+  version: 1.0.0
+x-provenance:
+  generated: '2026-09-03'
+  method: generated
+  source: openapi/mediacaption-api-openapi.yaml + https://www.mediacaption.io/docs
+extends: mediacaption-api-openapi.yaml
+actions:
+  - target: $.info
+    update:
+      x-apisio-slug: mediacaption-api
+      x-docs: https://www.mediacaption.io/docs
+      x-pricing: https://www.mediacaption.io/pricing
+      x-changelog: https://www.mediacaption.io/docs/changelog
+      x-error-catalog: ../errors/mediacaption-api-problem-types.yml
+      x-conventions: ../conventions/mediacaption-api-conventions.yml
+  - target: $.paths['/transcripts'].post
+    update:
+      x-billing: Freezes 1 credit while the request runs; charges 1 credit when the transcript succeeds.
+      x-rate-limit: 10 requests per minute per account and API key.
+      x-idempotency: >-
+        None — avoid automatic retries after network timeouts; duplicate
+        retries start new work and spend additional credits.
+  - target: $.paths['/transcripts/bulk'].post
+    update:
+      x-billing: Freezes 1 credit per item at acceptance; failed items release unused frozen credits.
+      x-limits: Maximum 100 items per job; 5 concurrent bulk jobs per account.
+      x-reversibility: No cancel operation; completed items are charged and cannot be reversed.
+  - target: $.paths['/uploads/{id}'].delete
+    update:
+      x-reversibility: The one documented reversal path in v1 — cancel before processing refunds reserved credits.
+  - target: $.paths['/transcriptions/{id}'].get
+    update:
+      x-retention: Transcript bodies expire 3 days after completion (expiresAt); fetch or store content before that timestamp.

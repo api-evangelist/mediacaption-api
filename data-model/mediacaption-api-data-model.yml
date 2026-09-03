@@ -1,0 +1,60 @@
+generated: '2026-09-03'
+method: derived
+source: openapi/mediacaption-api-openapi.yaml (components/schemas $ref links and id-reference fields)
+description: >-
+  Entity-relationship graph of the Media Caption Public API v1, derived from
+  the OpenAPI schemas. The account owns a credit balance; transcript work
+  produces Transcriptions, either synchronously, through bulk Jobs whose
+  JobItems reference transcriptions, or through local-file Uploads.
+id_prefixes:
+  - prefix: tr_
+    entity: Transcription
+    example: tr_3f6e5c6a-0d31-4f8c-9b1d-7f3b9e6a2c11
+  - prefix: job_
+    entity: Job
+    example: job_01jz7m91bxkpbqha0wt8whm76r
+  - prefix: evt_
+    entity: WebhookEvent
+    example: evt_job_01jz7m91bxkpbqha0wt8whm76r_job.completed
+  - prefix: mc_live_
+    entity: ApiKey (credential, not a resource)
+entities:
+  - name: ApiUser
+    fields: [id, email, hasActiveSubscription, createdAt]
+  - name: CreditBalance
+    fields: [credits, subscriptionCredits, bundleCredits, monthlyCreditLimit, monthlyCreditsRenewAt]
+  - name: Transcription
+    fields: [transcriptionId, source, status, language, sourceUrl, durationSec, expiresAt, createdAt, completedAt, transcript, error]
+  - name: TranscriptSegment
+    fields: [startSec, durationSec, text]
+  - name: Job
+    fields: [id, type, status, progress, itemCount, completedCount, failedCount, creditsFrozen, creditsCharged, creditsRefunded, createdAt, startedAt, completedAt, items, nextCursor]
+  - name: JobItem
+    fields: [externalId, status, sourceType, sourceUrl, videoId, language, transcriptionId, durationSec, creditsFrozen, creditsCharged, creditsRefunded, createdAt, completedAt, error]
+  - name: Upload
+    fields: [id, filename, sizeBytes, durationSec, requiredCredits, reservedCredits, status, progress, stage, error, createdAt, completedAt, transcriptionId, transcriptionUrl]
+relationships:
+  - from: ApiUser
+    relation: has_one
+    to: CreditBalance
+    via: GET /balance for the authenticated account
+  - from: Job
+    relation: has_many
+    to: JobItem
+    via: items[] (cursor-paginated with nextCursor)
+  - from: JobItem
+    relation: belongs_to
+    to: Transcription
+    via: transcriptionId
+  - from: Upload
+    relation: has_one
+    to: Transcription
+    via: transcriptionId / transcriptionUrl once processing completes
+  - from: Transcription
+    relation: has_many
+    to: TranscriptSegment
+    via: transcript[]
+  - from: WebhookEvent
+    relation: belongs_to
+    to: Job
+    via: data.jobId (job.completed, job.completed_with_errors, job.failed)

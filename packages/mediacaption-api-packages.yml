@@ -1,0 +1,12 @@
+generated: '2026-09-03'
+method: searched
+source: registry.npmjs.org search, pypi.org, rubygems.org, api.github.com (org + repository search), https://www.mediacaption.io/docs
+package_count: 0
+packages: []
+note: >-
+  No first-party client libraries exist. npm search for "mediacaption"
+  returns unrelated packages; pypi.org/pypi/mediacaption (and media-caption)
+  and rubygems.org/api/v1/gems/mediacaption all 404; no MediaCaption GitHub
+  organization exists (api.github.com/orgs/mediacaption 404) and repository
+  search finds only unaffiliated projects. The docs quickstart shows raw
+  curl/TypeScript/Python HTTP examples rather than an SDK.

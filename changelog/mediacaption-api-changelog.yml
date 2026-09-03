@@ -1,0 +1,18 @@
+generated: '2026-09-03'
+method: searched
+source: https://www.mediacaption.io/docs/changelog
+description: Dated public changelog tracking API documentation and contract changes for v1.
+scheme: dated entries, no semantic version numbers; the contract itself is v1 (OpenAPI info.version 1.0.0)
+current_version: v1
+entries:
+  - date: '2026-08-09'
+    breaking: false
+    additions:
+      - Complete local-file multipart upload, credit reconciliation, resume, polling, and transcript retrieval example.
+      - Documented the 3 GB upload limit and upload-source cleanup windows.
+  - date: '2026-05-26'
+    breaking: false
+    additions:
+      - REST reference pages for user, balance, transcripts, bulk jobs, transcriptions, and jobs.
+      - OpenAPI coverage for authentication, REST endpoints, errors, webhooks, billing fields, retention fields, and rate-limit headers.
+      - Documented job-level webhook events; clarified item-level events are not sent in API v1.

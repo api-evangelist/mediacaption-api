@@ -1,8 +1,7 @@
 name: MediaCaption API
-description: >-
-  A credit-billed REST API for retrieving public YouTube transcripts, with single and bulk transcript jobs, job-level
-  webhooks, and AI transcription/translation capabilities. Backed by a public OpenAPI 3.1 contract with bearer/X-API-Key
-  authentication.
+description: A credit-billed REST API for retrieving public YouTube transcripts, with single and bulk transcript
+  jobs, job-level webhooks, and AI transcription/translation capabilities. Backed by a public OpenAPI 3.1 contract
+  with bearer/X-API-Key authentication.
 url: https://raw.githubusercontent.com/api-evangelist/mediacaption-api/refs/heads/main/apis.yml
 deliveryModel:
   model: unknown
@@ -16,9 +15,41 @@ deliveryModel:
   generated: '2026-08-28'
   method: derived
 created: '2026-07-18'
-modified: '2026-07-18'
+modified: '2026-09-03'
+image: https://www.mediacaption.io/android-chrome-512x512.png
 specificationVersion: '0.23'
 tags:
+- YouTube
+- Transcription
+- Captions
+- Subtitles
+- Video
+- REST
+- OpenAPI
+- Webhook
+- Speech-to-Text
+- Media
+- Developer Tools
+tags_raw:
+- youtube
+- transcription
+- captions
+- subtitles
+- video
+- rest
+- openapi
+- webhooks
+- speech-to-text
+- media
+- developer-tools
+apis:
+- name: Media Caption Public API
+  description: REST API for fetching public YouTube transcripts synchronously and in bulk, with account/balance
+    endpoints, job polling, and completion webhooks. Bearer API key or X-API-Key auth.
+  humanURL: https://www.mediacaption.io/api
+  baseURL: https://api.mediacaption.io/v1
+  image: https://www.mediacaption.io/android-chrome-512x512.png
+  tags:
   - YouTube
   - Transcription
   - Captions
@@ -30,7 +61,7 @@ tags:
   - Speech-to-Text
   - Media
   - Developer Tools
-tags_raw:
+  tags_raw:
   - youtube
   - transcription
   - captions
@@ -42,49 +73,72 @@ tags_raw:
   - speech-to-text
   - media
   - developer-tools
-apis:
-  - name: Media Caption Public API
-    description: >-
-      REST API for fetching public YouTube transcripts synchronously and in bulk, with account/balance endpoints, job
-      polling, and completion webhooks. Bearer API key or X-API-Key auth.
-    humanURL: https://www.mediacaption.io/api
-    baseURL: https://api.mediacaption.io/v1
-    tags:
-      - YouTube
-      - Transcription
-      - Captions
-      - Subtitles
-      - Video
-      - REST
-      - OpenAPI
-      - Webhook
-      - Speech-to-Text
-      - Media
-      - Developer Tools
-    tags_raw:
-      - youtube
-      - transcription
-      - captions
-      - subtitles
-      - video
-      - rest
-      - openapi
-      - webhooks
-      - speech-to-text
-      - media
-      - developer-tools
-    properties:
-      - type: OpenAPI
-        url: https://www.mediacaption.io/docs/openapi/mediacaption.v1.yaml
-      - type: Documentation
-        url: https://www.mediacaption.io/docs
-      - type: Documentation
-        url: https://www.mediacaption.io/docs/quickstart
+  properties:
+  - type: OpenAPI
+    url: https://www.mediacaption.io/docs/openapi/mediacaption.v1.yaml
+  - type: Documentation
+    url: https://www.mediacaption.io/docs
+  - type: GettingStarted
+    url: https://www.mediacaption.io/docs/quickstart
+  - type: OpenAPI
+    url: openapi/mediacaption-api-openapi.yaml
+  - type: Overlay
+    url: overlays/mediacaption-api-openapi-overlay.yaml
+  - type: APIReference
+    url: https://www.mediacaption.io/docs/api-reference/transcripts
 maintainers:
-  - FN: MediaCaption API
-    url: https://www.mediacaption.io
+- FN: MediaCaption API
+  url: https://www.mediacaption.io
 generated:
   by: apis.io/add
   model: claude-opus-4-8
   confidence: 95
   at: '2026-07-18T18:19:45.114Z'
+common:
+- type: Website
+  url: https://mediacaption.io
+- type: DomainSecurity
+  url: security/mediacaption-api-domain-security.yml
+- type: Authentication
+  url: authentication/mediacaption-api-authentication.yml
+- type: WellKnown
+  url: well-known/mediacaption-api-well-known.yml
+- type: Webhooks
+  url: asyncapi/mediacaption-api-webhooks.yml
+- type: MCPServer
+  url: mcp/mediacaption-api-mcp.yml
+- type: LLMsTxt
+  url: llms/mediacaption-api-llms.txt
+- type: Conformance
+  url: conformance/mediacaption-api-conformance.yml
+- type: ErrorCatalog
+  url: errors/mediacaption-api-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/mediacaption-api-lifecycle.yml
+- type: ChangeLog
+  url: changelog/mediacaption-api-changelog.yml
+- type: ChangeLog
+  url: https://www.mediacaption.io/docs/changelog
+- type: Conventions
+  url: conventions/mediacaption-api-conventions.yml
+- type: DataModel
+  url: data-model/mediacaption-api-data-model.yml
+- type: Plans
+  url: plans/mediacaption-api-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/mediacaption-api-rate-limits.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Pricing
+  url: https://www.mediacaption.io/pricing
+- type: Support
+  url: https://www.mediacaption.io/report
+- type: TermsOfService
+  url: https://www.mediacaption.io/terms
+- type: PrivacyPolicy
+  url: https://www.mediacaption.io/privacy
+x-enrichment:
+  date: '2026-09-03'
+  status: enriched
+  artifacts_added: 22
+  pass: local-v2

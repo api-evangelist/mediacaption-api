@@ -1,0 +1,38 @@
+generated: '2026-09-03'
+method: searched
+source: https://www.mediacaption.io/docs/webhooks + openapi/mediacaption-api-openapi.yaml (webhooks section)
+type: webhook-catalog
+description: >-
+  Job-level webhook catalog for the Media Caption Public API v1. The provider
+  ships no AsyncAPI document; the three webhook events are, however, formally
+  declared in the OpenAPI 3.1 webhooks section with full payload schemas.
+  Item-level transcription events are not sent in API v1.
+events:
+  - name: job.completed
+    operationId: receiveJobCompletedWebhook
+    description: A bulk job finished with every item completed.
+  - name: job.completed_with_errors
+    operationId: receiveJobCompletedWithErrorsWebhook
+    description: A bulk job finished with at least one failed item.
+  - name: job.failed
+    operationId: receiveJobFailedWebhook
+    description: A bulk job failed.
+payload:
+  envelope_fields: [id, type, eventId, eventType, createdAt, apiVersion, data]
+  data_fields: [jobId, jobType, status, progress, itemCount, completedCount, failedCount, creditsFrozen, creditsCharged, creditsReleased, items]
+  api_version_example: '2026-05-11'
+delivery:
+  headers:
+    - MediaCaption-Event-Id
+    - MediaCaption-Timestamp
+    - MediaCaption-Signature
+  signature:
+    scheme: HMAC-SHA256
+    signed_payload: timestamp + "." + rawBody
+    header_format: v1=<hex hmac sha256>
+    guidance: >-
+      Verify the raw request body before parsing JSON, compare with a
+      constant-time comparison, and reject stale timestamps (five minutes is
+      the suggested default).
+  idempotency: Treat MediaCaption-Event-Id as an idempotency key; retries can send the same event more than once.
+  retries: Non-2xx responses and network failures are retried with recorded delivery attempts, up to 3 attempts. Any 2xx response is success.

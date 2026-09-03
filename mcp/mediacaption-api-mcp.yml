@@ -1,0 +1,57 @@
+generated: '2026-09-03'
+method: derived
+status: candidate
+source: openapi/mediacaption-api-openapi.yaml
+description: >-
+  Media Caption ships no MCP server — no hosted endpoint, no stdio package,
+  no MCP mention anywhere in the docs, and a web search finds only
+  unaffiliated third-party YouTube-caption servers. This is a candidate tool
+  list derived from the 13 OpenAPI operations, describing what a first-party
+  server could expose.
+deployment:
+  mode: none
+  endpoint: null
+  install: null
+  package: null
+  auth: api-key
+  verified: derived
+candidate_tools:
+  - name: get_user
+    operationId: getUser
+    description: Fetch the authenticated account profile.
+  - name: get_balance
+    operationId: getBalance
+    description: Fetch the account credit balance (subscription, bundle and monthly credits).
+  - name: create_transcript
+    operationId: createTranscript
+    description: Synchronously fetch a public YouTube transcript (1 credit on success).
+  - name: create_bulk_transcript_job
+    operationId: createBulkTranscriptJob
+    description: Start an async bulk transcript job of up to 100 videos.
+  - name: create_cloud_transcription
+    operationId: createCloudTranscription
+    description: Start AI transcription of a media file referenced by URL.
+  - name: get_transcription
+    operationId: getTranscription
+    description: Retrieve a retained transcription by id before its 3-day expiry.
+  - name: get_job
+    operationId: getJob
+    description: Poll an async job, with cursor pagination over its items.
+  - name: create_upload
+    operationId: createUpload
+    description: Begin a multipart local-file upload for AI transcription.
+  - name: get_upload
+    operationId: getUpload
+    description: Fetch upload and transcription status.
+  - name: cancel_upload
+    operationId: cancelUpload
+    description: Cancel an upload before processing; reserved credits are refunded.
+  - name: create_upload_part_url
+    operationId: createUploadPartUrl
+    description: Request a presigned URL for the next upload part.
+  - name: complete_upload
+    operationId: completeUpload
+    description: Complete a multipart upload and start processing.
+  - name: resume_upload
+    operationId: resumeUpload
+    description: Resume transcription after adding credits.

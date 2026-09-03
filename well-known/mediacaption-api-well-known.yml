@@ -1,0 +1,81 @@
+generated: '2026-09-03'
+method: probed
+source: live probes of mediacaption.io, www.mediacaption.io, api.mediacaption.io and clerk.mediacaption.io
+note: >-
+  The bare domain 307-redirects every path to www; www and api 404 every
+  /.well-known/ document and /llms.txt (the 404s return the site's HTML shell).
+  The one real hit is the OpenID Connect discovery document served by the
+  provider's Clerk tenant at clerk.mediacaption.io — it governs web-app
+  sign-in, not the public API, which authenticates with mc_live_ API keys
+  (see authentication/). No security.txt, api-catalog, ai-plugin, agent card,
+  or llms.txt is served on any host.
+hosts:
+  - host: mediacaption.io
+    note: 307 redirect to www.mediacaption.io for every probed path
+    documents:
+      - path: /.well-known/security.txt
+        status: 307
+      - path: /.well-known/openid-configuration
+        status: 307
+      - path: /.well-known/oauth-authorization-server
+        status: 307
+      - path: /.well-known/api-catalog
+        status: 307
+      - path: /.well-known/ai-plugin.json
+        status: 307
+      - path: /.well-known/agent-card.json
+        status: 307
+      - path: /.well-known/agent.json
+        status: 307
+      - path: /llms.txt
+        status: 307
+  - host: www.mediacaption.io
+    documents:
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/openid-configuration
+        status: 404
+      - path: /.well-known/oauth-authorization-server
+        status: 404
+      - path: /.well-known/oauth-protected-resource
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+      - path: /.well-known/ai-plugin.json
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+      - path: /llms.txt
+        status: 404
+  - host: api.mediacaption.io
+    documents:
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/openid-configuration
+        status: 404
+      - path: /.well-known/oauth-authorization-server
+        status: 404
+      - path: /.well-known/oauth-protected-resource
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+      - path: /.well-known/ai-plugin.json
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+      - path: /llms.txt
+        status: 404
+      - path: /openapi.json
+        status: 404
+      - path: /v1/openapi.json
+        status: 404
+  - host: clerk.mediacaption.io
+    note: Clerk-hosted authentication tenant for the web application (not the public API's auth)
+    documents:
+      - path: /.well-known/openid-configuration
+        status: 200
+        file: well-known/mediacaption-api-clerk-openid-configuration.json

@@ -1,0 +1,110 @@
+generated: '2026-09-03'
+method: searched
+source: >-
+  https://www.mediacaption.io/docs (quickstart, authentication, webhooks,
+  billing, data-retention, errors, rate-limits) + openapi/mediacaption-api-openapi.yaml
+description: >-
+  Cross-cutting runtime semantics of the Media Caption Public API v1: API-key
+  authentication, credit freeze/charge billing, cursor pagination on job
+  items, request-id tracing, a custom error envelope, and X-RateLimit
+  signaling. No general idempotency-key mechanism exists.
+
+base_url: https://api.mediacaption.io/v1
+api_style: REST over HTTPS, JSON requests and responses
+
+authentication:
+  scheme: 'Bearer API key (Authorization: Bearer mc_live_xxx) or X-API-Key header'
+  precedence: bearer authentication takes precedence when both headers are present
+  docs: https://www.mediacaption.io/docs/authentication
+  detail: authentication/mediacaption-api-authentication.yml
+
+idempotency:
+  coverage: none
+  supported: false
+  mechanism: null
+  note: >-
+    No Idempotency-Key or equivalent replay-protection header exists on any
+    write. The quickstart explicitly warns against automatic POST retries
+    after network timeouts because duplicate retries start new work and spend
+    additional credits. The only idempotency mechanism published is for
+    webhook CONSUMERS: MediaCaption-Event-Id should be treated as an
+    idempotency key because deliveries can repeat — that protects the
+    receiver, not API writes.
+  docs: https://www.mediacaption.io/docs/quickstart
+
+pagination:
+  style: cursor
+  applies_to: job items on GET /v1/jobs/{id}
+  request_params:
+    limit: page size for job items
+    cursor: opaque cursor from a previous response
+  response_fields:
+    nextCursor: cursor for the next page of job items (Job.nextCursor)
+  note: Top-level list endpoints do not exist in v1; pagination applies only to items within a job.
+
+request_tracing:
+  header: X-Request-Id
+  note: Returned on responses per the OpenAPI components/headers; errors docs say every error carries a request ID header.
+
+versioning:
+  style: URI path (/v1) plus dated apiVersion (e.g. 2026-05-11) in webhook payloads
+  detail: lifecycle/mediacaption-api-lifecycle.yml
+
+error_envelope:
+  shape: '{ "error": { "code": "...", "message": "..." } }'
+  format: custom (not RFC 9457)
+  detail: errors/mediacaption-api-problem-types.yml
+
+rate_limit_signaling:
+  headers: [X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After]
+  exhaustion_status: 429
+  detail: rate-limits/mediacaption-api-rate-limits.yml
+
+async_model:
+  pattern: >-
+    Accepted-then-poll: bulk transcript jobs and cloud/local transcriptions
+    return an id plus a status URL; poll GET /v1/jobs/{id} or
+    GET /v1/transcriptions/{id}, or receive job-level webhooks
+    (job.completed, job.completed_with_errors, job.failed).
+  detail: asyncapi/mediacaption-api-webhooks.yml
+
+billing_semantics:
+  model: >-
+    Credits are frozen at acceptance and charged on success; failed work
+    releases frozen credits. Responses expose creditsFrozen, creditsCharged
+    and creditsRefunded so callers can reconcile spend per request/job/item.
+  docs: https://www.mediacaption.io/docs/billing
+
+reversibility:
+  summary: >-
+    Most writes start paid asynchronous work and cannot be reversed once
+    processing succeeds; the one documented reversal path is cancelling a
+    local-file upload before processing. Financial exposure is bounded by the
+    credit freeze/refund model rather than by operation-level undo.
+  write_surfaces:
+    - operation: createTranscript
+      reversal: none
+      note: >-
+        Synchronous; no cancel exists. A failed request does not charge —
+        credits are frozen then released on failure, charged only on success.
+    - operation: createBulkTranscriptJob
+      reversal: none
+      note: >-
+        No job-cancel operation exists in v1. Failed items automatically
+        release their frozen credits (creditsRefunded); completed items are
+        charged and cannot be reversed.
+    - operation: createCloudTranscription
+      reversal: none
+      note: No cancel operation for URL-sourced transcriptions is published.
+    - operation: createUpload
+      reversal: cancelUpload
+      reversal_operation: cancelUpload (DELETE /v1/uploads/{id})
+      window: before processing starts (docs state cancel is available "before processing"; cancelled uploads refund reserved credits)
+      grade: documented
+      docs: https://www.mediacaption.io/docs/api-reference/uploads
+      note: >-
+        The OpenAPI summary is "Cancel an upload before processing" and the
+        200 response is "Upload cancelled and reserved credits refunded". No
+        numeric window is stated beyond the automatic abort of incomplete
+        multipart uploads after one day.
+  destructive_operations: none — the API has no delete of stored transcripts; content expires automatically after 3 days.

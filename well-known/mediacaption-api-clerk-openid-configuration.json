@@ -1,0 +1,59 @@
+{
+    "issuer": "https://clerk.mediacaption.io",
+    "authorization_endpoint": "https://clerk.mediacaption.io/oauth/authorize",
+    "token_endpoint": "https://clerk.mediacaption.io/oauth/token",
+    "revocation_endpoint": "https://clerk.mediacaption.io/oauth/token/revoke",
+    "introspection_endpoint": "https://clerk.mediacaption.io/oauth/token_info",
+    "userinfo_endpoint": "https://clerk.mediacaption.io/oauth/userinfo",
+    "jwks_uri": "https://clerk.mediacaption.io/.well-known/jwks.json",
+    "scopes_supported": [
+        "profile",
+        "public_metadata",
+        "private_metadata",
+        "openid",
+        "offline_access",
+        "email"
+    ],
+    "response_types_supported": [
+        "code"
+    ],
+    "response_modes_supported": [
+        "form_post",
+        "query"
+    ],
+    "grant_types_supported": [
+        "authorization_code",
+        "refresh_token"
+    ],
+    "subject_types_supported": [
+        "public"
+    ],
+    "id_token_signing_alg_values_supported": [
+        "RS256"
+    ],
+    "token_endpoint_auth_methods_supported": [
+        "client_secret_basic",
+        "none",
+        "client_secret_post"
+    ],
+    "claims_supported": [
+        "name",
+        "preferred_username",
+        "aud",
+        "email",
+        "email_verified",
+        "picture",
+        "sub",
+        "iss",
+        "exp",
+        "iat",
+        "given_name",
+        "family_name"
+    ],
+    "code_challenge_methods_supported": [
+        "S256"
+    ],
+    "backchannel_logout_supported": false,
+    "frontchannel_logout_supported": false,
+    "authorization_response_iss_parameter_supported": true
+}

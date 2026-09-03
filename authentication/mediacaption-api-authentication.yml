@@ -1,0 +1,37 @@
+generated: '2026-09-03'
+method: searched
+source: openapi/mediacaption-api-openapi.yaml + https://www.mediacaption.io/docs/authentication
+docs: https://www.mediacaption.io/docs/authentication
+summary:
+  types:
+  - apiKey
+  - http
+  api_key_in:
+  - header
+key_format: mc_live_ prefix; live keys only — no test-mode key prefix is published
+key_management: Keys are created in the platform dashboard and shown once at creation.
+precedence: When both headers are present, bearer authentication takes precedence.
+failure_modes:
+  - code: missing_api_key
+    status: 401
+    when: no key is sent
+  - code: invalid_api_key
+    status: 401
+    when: malformed, unknown, or revoked keys
+schemes:
+- name: bearerApiKey
+  type: http
+  scheme: bearer
+  bearerFormat: Media Caption API key
+  description: 'Use `Authorization: Bearer mc_live_xxx`.'
+  sources:
+  - openapi/mediacaption-api-openapi.yaml
+  - https://www.mediacaption.io/docs/authentication
+- name: headerApiKey
+  type: apiKey
+  in: header
+  parameter: X-API-Key
+  description: Alternative API key header.
+  sources:
+  - openapi/mediacaption-api-openapi.yaml
+  - https://www.mediacaption.io/docs/authentication

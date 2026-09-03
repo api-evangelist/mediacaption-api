@@ -1,0 +1,29 @@
+generated: '2026-09-03'
+method: searched
+source: https://www.mediacaption.io/docs/changelog + https://www.mediacaption.io/docs + openapi/mediacaption-api-openapi.yaml
+versioning:
+  scheme: URI path version (/v1) plus a dated apiVersion field (e.g. 2026-05-11) in webhook event payloads
+  current: v1
+  docs: https://www.mediacaption.io/docs
+deprecation:
+  policy_published: false
+  deprecated_operations: []
+  note: >-
+    No deprecation policy, Sunset/Deprecation header usage, or deprecated
+    operations are published; the OpenAPI declares no deprecated flags.
+status_page:
+  published: false
+  note: No public status page is linked from the site or docs.
+sla:
+  published: false
+  note: No SLA is published.
+changelog:
+  published: true
+  url: https://www.mediacaption.io/docs/changelog
+  detail: changelog/mediacaption-api-changelog.yml
+data_retention:
+  docs: https://www.mediacaption.io/docs/data-retention
+  transcript_content: API transcript bodies expire 3 days after completion (expiresAt on each transcription).
+  incomplete_uploads: aborted after one day
+  completed_upload_sources: expire from Media Caption S3 after 30 days
+  url_sources: cloud-storage sources submitted by URL are not copied into Media Caption S3

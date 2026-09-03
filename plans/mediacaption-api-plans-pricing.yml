@@ -1,0 +1,61 @@
+generated: '2026-09-03'
+method: searched
+source: https://www.mediacaption.io/pricing
+description: >-
+  Credit-based pricing. Public transcript browsing on the web is free; public
+  API access is included with signup and transcript requests spend account
+  credits only when a transcript is successfully returned. AI features
+  (transcription, summaries, insights, translation) consume credits.
+currency: USD
+plan_count: 2
+plans:
+  - name: Free
+    price: 0
+    currency: USD
+    billing_period: forever
+    included:
+      - 10 starter credits on signup (up to 10 AI transcription minutes)
+      - Unlimited public transcripts
+      - API access
+      - Search, copy & download (TXT, SRT & VTT)
+      - Multilingual transcript support
+    credit_costs:
+      ai_transcription: 1 credit per minute
+      summary_or_key_insights: 1 credit each
+      translation: 1 credit per 100,000 characters
+  - name: Premium
+    price: null
+    currency: USD
+    billing_period: monthly
+    included:
+      - 100 AI credits each month, refreshed every billing cycle
+      - Everything in Free
+    note: Price is only shown at checkout; the public pricing page does not state a number.
+credit_packs:
+  - name: Starter top-up
+    credits: 50
+    price: 5
+    per_credit: 0.10
+  - name: Creator pack
+    credits: 200
+    price: 10
+    per_credit: 0.05
+  - name: Studio pack
+    credits: 500
+    price: 25
+    per_credit: 0.05
+  - name: Pro pack
+    credits: 1000
+    price: 50
+    per_credit: 0.05
+credit_packs_note: One-time packs, purchasable without subscribing; purchased credits never expire.
+api_billing:
+  model: >-
+    POST /v1/transcripts freezes 1 credit while the request runs and charges 1
+    credit on success. Bulk jobs freeze 1 credit per item at acceptance;
+    successful items are charged and failed items release unused frozen
+    credits. Local uploads reserve credits from estimated duration, then
+    charge or refund the difference after server-side measurement.
+  insufficient_credits: 402 insufficient_credits is returned before processing starts
+  docs: https://www.mediacaption.io/docs/billing
+limits_docs: https://www.mediacaption.io/docs/rate-limits
