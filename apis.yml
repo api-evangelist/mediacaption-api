@@ -43,47 +43,116 @@ tags_raw:
 - media
 - developer-tools
 apis:
-- name: Media Caption Public API
-  description: REST API for fetching public YouTube transcripts synchronously and in bulk, with account/balance
-    endpoints, job polling, and completion webhooks. Bearer API key or X-API-Key auth.
+- aid: mediacaption-api:mediacaption-api-balance-api
+  name: MediaCaption API Balance API
+  description: Authenticated account credit balance endpoints.
   humanURL: https://www.mediacaption.io/api
   baseURL: https://api.mediacaption.io/v1
-  image: https://www.mediacaption.io/android-chrome-512x512.png
   tags:
-  - YouTube
-  - Transcription
-  - Captions
-  - Subtitles
-  - Video
-  - REST
-  - OpenAPI
-  - Webhook
-  - Speech-to-Text
-  - Media
-  - Developer Tools
-  tags_raw:
-  - youtube
-  - transcription
-  - captions
-  - subtitles
-  - video
-  - rest
-  - openapi
-  - webhooks
-  - speech-to-text
-  - media
-  - developer-tools
+  - Balance
   properties:
   - type: OpenAPI
-    url: https://www.mediacaption.io/docs/openapi/mediacaption.v1.yaml
+    url: openapi/mediacaption-api-balance-api-openapi.yml
   - type: Documentation
     url: https://www.mediacaption.io/docs
   - type: GettingStarted
     url: https://www.mediacaption.io/docs/quickstart
+  - type: APIReference
+    url: https://www.mediacaption.io/docs/api-reference/transcripts
+- aid: mediacaption-api:mediacaption-api-jobs-api
+  name: MediaCaption API Jobs API
+  description: Async job status and item result endpoints.
+  humanURL: https://www.mediacaption.io/api
+  baseURL: https://api.mediacaption.io/v1
+  tags:
+  - Jobs
+  properties:
   - type: OpenAPI
-    url: openapi/mediacaption-api-openapi.yaml
-  - type: Overlay
-    url: overlays/mediacaption-api-openapi-overlay.yaml
+    url: openapi/mediacaption-api-jobs-api-openapi.yml
+  - type: Documentation
+    url: https://www.mediacaption.io/docs
+  - type: GettingStarted
+    url: https://www.mediacaption.io/docs/quickstart
+  - type: APIReference
+    url: https://www.mediacaption.io/docs/api-reference/transcripts
+- aid: mediacaption-api:mediacaption-api-transcriptions-api
+  name: MediaCaption API Transcriptions API
+  description: Retained transcript lookup endpoints.
+  humanURL: https://www.mediacaption.io/api
+  baseURL: https://api.mediacaption.io/v1
+  tags:
+  - Transcriptions
+  properties:
+  - type: OpenAPI
+    url: openapi/mediacaption-api-transcriptions-api-openapi.yml
+  - type: Documentation
+    url: https://www.mediacaption.io/docs
+  - type: GettingStarted
+    url: https://www.mediacaption.io/docs/quickstart
+  - type: APIReference
+    url: https://www.mediacaption.io/docs/api-reference/transcripts
+- aid: mediacaption-api:mediacaption-api-transcripts-api
+  name: MediaCaption API Transcripts API
+  description: Synchronous and async public YouTube transcript endpoints.
+  humanURL: https://www.mediacaption.io/api
+  baseURL: https://api.mediacaption.io/v1
+  tags:
+  - Transcripts
+  properties:
+  - type: OpenAPI
+    url: openapi/mediacaption-api-transcripts-api-openapi.yml
+  - type: Documentation
+    url: https://www.mediacaption.io/docs
+  - type: GettingStarted
+    url: https://www.mediacaption.io/docs/quickstart
+  - type: APIReference
+    url: https://www.mediacaption.io/docs/api-reference/transcripts
+- aid: mediacaption-api:mediacaption-api-uploads-api
+  name: MediaCaption API Uploads API
+  description: Multipart media upload and AI transcription endpoints.
+  humanURL: https://www.mediacaption.io/api
+  baseURL: https://api.mediacaption.io/v1
+  tags:
+  - Uploads
+  properties:
+  - type: OpenAPI
+    url: openapi/mediacaption-api-uploads-api-openapi.yml
+  - type: Documentation
+    url: https://www.mediacaption.io/docs
+  - type: GettingStarted
+    url: https://www.mediacaption.io/docs/quickstart
+  - type: APIReference
+    url: https://www.mediacaption.io/docs/api-reference/transcripts
+- aid: mediacaption-api:mediacaption-api-user-api
+  name: MediaCaption API User API
+  description: Authenticated account endpoints.
+  humanURL: https://www.mediacaption.io/api
+  baseURL: https://api.mediacaption.io/v1
+  tags:
+  - User
+  properties:
+  - type: OpenAPI
+    url: openapi/mediacaption-api-user-api-openapi.yml
+  - type: Documentation
+    url: https://www.mediacaption.io/docs
+  - type: GettingStarted
+    url: https://www.mediacaption.io/docs/quickstart
+  - type: APIReference
+    url: https://www.mediacaption.io/docs/api-reference/transcripts
+- aid: mediacaption-api:mediacaption-api-webhooks-api
+  name: MediaCaption API Webhooks API
+  description: Job-level webhook event contracts.
+  humanURL: https://www.mediacaption.io/api
+  baseURL: https://api.mediacaption.io/v1
+  tags:
+  - Webhooks
+  properties:
+  - type: OpenAPI
+    url: openapi/mediacaption-api-webhooks-api-openapi.yml
+  - type: Documentation
+    url: https://www.mediacaption.io/docs
+  - type: GettingStarted
+    url: https://www.mediacaption.io/docs/quickstart
   - type: APIReference
     url: https://www.mediacaption.io/docs/api-reference/transcripts
 maintainers:
@@ -95,6 +164,8 @@ generated:
   confidence: 95
   at: '2026-07-18T18:19:45.114Z'
 common:
+- type: Overlay
+  url: overlays/mediacaption-api-openapi-overlay.yaml
 - type: Website
   url: https://mediacaption.io
 - type: DomainSecurity
