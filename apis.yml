@@ -49,6 +49,8 @@ apis:
   humanURL: https://www.mediacaption.io/api
   baseURL: https://api.mediacaption.io/v1
   tags:
+  - Balances
+  tags_raw:
   - Balance
   properties:
   - type: OpenAPI
@@ -65,6 +67,8 @@ apis:
   humanURL: https://www.mediacaption.io/api
   baseURL: https://api.mediacaption.io/v1
   tags:
+  - Job
+  tags_raw:
   - Jobs
   properties:
   - type: OpenAPI
@@ -145,6 +149,8 @@ apis:
   humanURL: https://www.mediacaption.io/api
   baseURL: https://api.mediacaption.io/v1
   tags:
+  - Webhook
+  tags_raw:
   - Webhooks
   properties:
   - type: OpenAPI
