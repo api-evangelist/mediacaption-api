@@ -1,0 +1,209 @@
+openapi: 3.2.0
+info:
+  title: Media Caption Public Webhooks API
+  version: 1.0.0
+  description: 'Public API for reading account and credit balance details, fetching YouTube
+
+    transcripts, creating bulk transcript jobs, polling jobs, retrieving retained
+
+    transcriptions, and receiving job-level webhooks.'
+  contact:
+    name: Media Caption
+    url: https://mediacaption.io
+  license:
+    name: Proprietary
+    url: https://mediacaption.io/terms
+servers:
+- url: https://api.mediacaption.io/v1
+  description: Production
+security:
+- bearerApiKey: []
+- headerApiKey: []
+tags:
+- name: Webhooks
+  description: Job-level webhook event contracts.
+paths: {}
+webhooks:
+  jobCompleted:
+    post:
+      tags:
+      - Webhooks
+      summary: job.completed
+      operationId: receiveJobCompletedWebhook
+      description: Delivered once after a bulk job completes successfully.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+  jobCompletedWithErrors:
+    post:
+      tags:
+      - Webhooks
+      summary: job.completed_with_errors
+      operationId: receiveJobCompletedWithErrorsWebhook
+      description: Delivered once after a bulk job completes with at least one failed item.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+  jobFailed:
+    post:
+      tags:
+      - Webhooks
+      summary: job.failed
+      operationId: receiveJobFailedWebhook
+      description: Delivered once after a bulk job fails.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+components:
+  schemas:
+    WebhookEvent:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - type
+      - eventId
+      - eventType
+      - createdAt
+      - apiVersion
+      - data
+      properties:
+        id:
+          type: string
+          example: evt_job_01jz7m91bxkpbqha0wt8whm76r_job.completed
+        type:
+          $ref: '#/components/schemas/WebhookEventType'
+        eventId:
+          type: string
+        eventType:
+          $ref: '#/components/schemas/WebhookEventType'
+        createdAt:
+          type: string
+          format: date-time
+        apiVersion:
+          type: string
+          example: '2026-05-11'
+        livemode:
+          type: boolean
+          default: true
+        test:
+          type: boolean
+          default: false
+        data:
+          $ref: '#/components/schemas/WebhookJobData'
+    WebhookJobData:
+      type: object
+      additionalProperties: false
+      required:
+      - jobId
+      - jobType
+      - status
+      - progress
+      - itemCount
+      - completedCount
+      - failedCount
+      - creditsFrozen
+      - creditsCharged
+      - creditsReleased
+      - items
+      properties:
+        jobId:
+          type: string
+        jobType:
+          type: string
+          enum:
+          - public_transcripts_bulk
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        itemCount:
+          type: integer
+        completedCount:
+          type: integer
+        failedCount:
+          type: integer
+        creditsFrozen:
+          type: integer
+        creditsCharged:
+          type: integer
+        creditsReleased:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookJobItem'
+    JobItemStatus:
+      type: string
+      enum:
+      - queued
+      - processing
+      - completed
+      - failed
+    WebhookJobItem:
+      type: object
+      additionalProperties: false
+      required:
+      - itemId
+      - externalId
+      - status
+      properties:
+        itemId:
+          type: integer
+        externalId:
+          type:
+          - string
+          - 'null'
+        status:
+          $ref: '#/components/schemas/JobItemStatus'
+        transcriptionId:
+          type: string
+        error:
+          $ref: '#/components/schemas/ItemError'
+    ItemError:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+          example: transcript_unavailable
+        message:
+          type: string
+          example: No public transcript is available for this video.
+    JobStatus:
+      type: string
+      enum:
+      - queued
+      - processing
+      - completed
+      - completed_with_errors
+      - failed
+      - canceled
+    WebhookEventType:
+      type: string
+      enum:
+      - job.completed
+      - job.completed_with_errors
+      - job.failed
+  securitySchemes:
+    bearerApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Media Caption API key
+      description: 'Use `Authorization: Bearer mc_live_xxx`.'
+    headerApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Alternative API key header.

@@ -1,0 +1,32 @@
+{
+  "provider": "mediacaption-api",
+  "sources": [
+    "_original/mediacaption-api-openapi.yaml"
+  ],
+  "outputs": [
+    "mediacaption-api-balance-api-openapi.yml",
+    "mediacaption-api-jobs-api-openapi.yml",
+    "mediacaption-api-transcriptions-api-openapi.yml",
+    "mediacaption-api-transcripts-api-openapi.yml",
+    "mediacaption-api-uploads-api-openapi.yml",
+    "mediacaption-api-user-api-openapi.yml",
+    "mediacaption-api-webhooks-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "mediacaption-api-openapi.yaml: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "mediacaption-api-balance-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "mediacaption-api-jobs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "mediacaption-api-transcriptions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "mediacaption-api-transcripts-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "mediacaption-api-uploads-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "mediacaption-api-user-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "mediacaption-api-webhooks-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}

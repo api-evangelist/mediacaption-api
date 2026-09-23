@@ -1,0 +1,363 @@
+openapi: 3.2.0
+info:
+  title: Media Caption Public Transcriptions API
+  version: 1.0.0
+  description: 'Public API for reading account and credit balance details, fetching YouTube
+
+    transcripts, creating bulk transcript jobs, polling jobs, retrieving retained
+
+    transcriptions, and receiving job-level webhooks.'
+  contact:
+    name: Media Caption
+    url: https://mediacaption.io
+  license:
+    name: Proprietary
+    url: https://mediacaption.io/terms
+servers:
+- url: https://api.mediacaption.io/v1
+  description: Production
+security:
+- bearerApiKey: []
+- headerApiKey: []
+tags:
+- name: Transcriptions
+  description: Retained transcript lookup endpoints.
+paths:
+  /transcriptions:
+    post:
+      tags:
+      - Transcriptions
+      summary: Transcribe media already in cloud storage
+      description: 'Inspects the HTTPS source without persisting the media, verifies its size and
+
+        duration, charges the exact transcription credits, and then passes the URL
+
+        directly to ElevenLabs Scribe. The source must be no larger than 3 GB
+
+        (3,000,000,000 bytes) and remain accessible while ElevenLabs fetches it.'
+      operationId: createCloudTranscription
+      security:
+      - bearerApiKey: []
+      - headerApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudTranscriptionRequest'
+      responses:
+        '202':
+          description: Transcription queued
+          headers:
+            Location:
+              schema:
+                type: string
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudTranscriptionAcceptedResponse'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientCredits'
+        '413':
+          description: Remote media exceeds the 3 GB limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /transcriptions/{id}:
+    get:
+      tags:
+      - Transcriptions
+      summary: Fetch a retained transcription
+      description: Fetches queued, processing, failed, or completed transcription state by account-owned access ID. Transcript bodies are retained for 3 days.
+      operationId: getTranscription
+      security:
+      - bearerApiKey: []
+      - headerApiKey: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^tr_[0-9a-fA-F-]{36}$
+        example: tr_3f6e5c6a-0d31-4f8c-9b1d-7f3b9e6a2c11
+      responses:
+        '200':
+          description: Transcription found
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transcription'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/TranscriptionExpired'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    CloudTranscriptionRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - sourceUrl
+      properties:
+        sourceUrl:
+          type: string
+          format: uri
+          maxLength: 8192
+          description: Public or presigned HTTPS URL for an existing cloud media object.
+        filename:
+          type: string
+          maxLength: 400
+          description: Optional display filename; defaults to the URL path basename.
+    ErrorCode:
+      type: string
+      enum:
+      - concurrent_job_limit_exceeded
+      - geo_restricted
+      - invalid_api_key
+      - invalid_request
+      - insufficient_credits
+      - internal_error
+      - missing_api_key
+      - not_found
+      - public_api_rate_limited
+      - single_transcript_rate_limited
+      - transcription_expired
+      - transcript_unavailable
+      - video_unavailable
+      - webhook_not_found
+      - youtube_blocked
+      - youtube_rate_limited
+    TranscriptSegment:
+      type: object
+      additionalProperties: false
+      required:
+      - startSec
+      - durationSec
+      - text
+      properties:
+        startSec:
+          type: number
+          minimum: 0
+          example: 0
+        durationSec:
+          type: number
+          minimum: 0
+          example: 2.4
+        text:
+          type: string
+          example: Example transcript text
+    Transcription:
+      type: object
+      additionalProperties: false
+      required:
+      - transcriptionId
+      - source
+      - status
+      - language
+      - sourceUrl
+      - durationSec
+      - expiresAt
+      - createdAt
+      - completedAt
+      - transcript
+      properties:
+        transcriptionId:
+          type: string
+        source:
+          type: string
+          enum:
+          - public
+          - ai
+        status:
+          type: string
+          enum:
+          - queued
+          - processing
+          - completed
+          - failed
+        language:
+          type: string
+        sourceUrl:
+          type: string
+          format: uri
+        durationSec:
+          type:
+          - number
+          - 'null'
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        transcript:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/TranscriptSegment'
+        error:
+          type: string
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+    CloudTranscriptionAcceptedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - transcriptionId
+      - status
+      - sourceUrl
+      - durationSec
+      - sizeBytes
+      - requiredCredits
+      - statusUrl
+      properties:
+        transcriptionId:
+          type: string
+        status:
+          type: string
+          enum:
+          - queued
+        sourceUrl:
+          type: string
+          format: uri
+          description: Query-free source URL; signed credentials are never returned.
+        durationSec:
+          type: integer
+        sizeBytes:
+          type: integer
+          maximum: 3000000000
+        requiredCredits:
+          type: integer
+        statusUrl:
+          type: string
+  responses:
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing:
+              value:
+                error:
+                  code: missing_api_key
+                  message: Missing API key.
+            invalid:
+              value:
+                error:
+                  code: invalid_api_key
+                  message: Invalid API key.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InsufficientCredits:
+      description: Not enough credits to start processing
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: insufficient_credits
+              message: Insufficient credits.
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InvalidRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TranscriptionExpired:
+      description: Transcription retention window has ended
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: transcription_expired
+              message: This transcription has expired and is no longer available.
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
+  securitySchemes:
+    bearerApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Media Caption API key
+      description: 'Use `Authorization: Bearer mc_live_xxx`.'
+    headerApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Alternative API key header.

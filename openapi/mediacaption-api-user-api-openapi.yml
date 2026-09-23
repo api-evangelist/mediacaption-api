@@ -1,0 +1,185 @@
+openapi: 3.2.0
+info:
+  title: Media Caption Public User API
+  version: 1.0.0
+  description: 'Public API for reading account and credit balance details, fetching YouTube
+
+    transcripts, creating bulk transcript jobs, polling jobs, retrieving retained
+
+    transcriptions, and receiving job-level webhooks.'
+  contact:
+    name: Media Caption
+    url: https://mediacaption.io
+  license:
+    name: Proprietary
+    url: https://mediacaption.io/terms
+servers:
+- url: https://api.mediacaption.io/v1
+  description: Production
+security:
+- bearerApiKey: []
+- headerApiKey: []
+tags:
+- name: User
+  description: Authenticated account endpoints.
+paths:
+  /user:
+    get:
+      tags:
+      - User
+      summary: Fetch the authenticated user
+      description: Returns account identity and subscription state for the authenticated account. This endpoint does not consume credits.
+      operationId: getUser
+      security:
+      - bearerApiKey: []
+      - headerApiKey: []
+      responses:
+        '200':
+          description: User found
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    UserResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - user
+      properties:
+        user:
+          $ref: '#/components/schemas/ApiUser'
+    ApiUser:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - email
+      - hasActiveSubscription
+      - createdAt
+      properties:
+        id:
+          type: string
+          description: Media Caption user ID for the authenticated account.
+          example: user_123
+        email:
+          type: string
+          format: email
+          description: Primary account email address.
+          example: user@example.com
+        hasActiveSubscription:
+          type: boolean
+          description: Whether the account currently has an active subscription.
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp.
+    ErrorCode:
+      type: string
+      enum:
+      - concurrent_job_limit_exceeded
+      - geo_restricted
+      - invalid_api_key
+      - invalid_request
+      - insufficient_credits
+      - internal_error
+      - missing_api_key
+      - not_found
+      - public_api_rate_limited
+      - single_transcript_rate_limited
+      - transcription_expired
+      - transcript_unavailable
+      - video_unavailable
+      - webhook_not_found
+      - youtube_blocked
+      - youtube_rate_limited
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+  responses:
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing:
+              value:
+                error:
+                  code: missing_api_key
+                  message: Missing API key.
+            invalid:
+              value:
+                error:
+                  code: invalid_api_key
+                  message: Invalid API key.
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
+  securitySchemes:
+    bearerApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Media Caption API key
+      description: 'Use `Authorization: Bearer mc_live_xxx`.'
+    headerApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Alternative API key header.

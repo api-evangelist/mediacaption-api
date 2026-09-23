@@ -1,0 +1,195 @@
+openapi: 3.2.0
+info:
+  title: Media Caption Public Balance API
+  version: 1.0.0
+  description: 'Public API for reading account and credit balance details, fetching YouTube
+
+    transcripts, creating bulk transcript jobs, polling jobs, retrieving retained
+
+    transcriptions, and receiving job-level webhooks.'
+  contact:
+    name: Media Caption
+    url: https://mediacaption.io
+  license:
+    name: Proprietary
+    url: https://mediacaption.io/terms
+servers:
+- url: https://api.mediacaption.io/v1
+  description: Production
+security:
+- bearerApiKey: []
+- headerApiKey: []
+tags:
+- name: Balance
+  description: Authenticated account credit balance endpoints.
+paths:
+  /balance:
+    get:
+      tags:
+      - Balance
+      summary: Fetch the authenticated user's credit balance
+      description: Returns the current credit balance for the authenticated account. This endpoint does not consume credits.
+      operationId: getBalance
+      security:
+      - bearerApiKey: []
+      - headerApiKey: []
+      responses:
+        '200':
+          description: Balance found
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  responses:
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing:
+              value:
+                error:
+                  code: missing_api_key
+                  message: Missing API key.
+            invalid:
+              value:
+                error:
+                  code: invalid_api_key
+                  message: Invalid API key.
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorCode:
+      type: string
+      enum:
+      - concurrent_job_limit_exceeded
+      - geo_restricted
+      - invalid_api_key
+      - invalid_request
+      - insufficient_credits
+      - internal_error
+      - missing_api_key
+      - not_found
+      - public_api_rate_limited
+      - single_transcript_rate_limited
+      - transcription_expired
+      - transcript_unavailable
+      - video_unavailable
+      - webhook_not_found
+      - youtube_blocked
+      - youtube_rate_limited
+    CreditBalance:
+      type: object
+      additionalProperties: false
+      required:
+      - credits
+      - subscriptionCredits
+      - bundleCredits
+      - monthlyCreditLimit
+      - monthlyCreditsRenewAt
+      properties:
+        credits:
+          type: integer
+          description: Total spendable credits across subscription and bundle pools.
+          example: 20
+        subscriptionCredits:
+          type: integer
+          description: Credits from the active subscription grant.
+          example: 12
+        bundleCredits:
+          type: integer
+          description: Purchased or granted credits that do not expire through subscription renewal.
+          example: 8
+        monthlyCreditLimit:
+          type:
+          - integer
+          - 'null'
+          description: Included monthly subscription credits, or null when no active subscription limit is available.
+          example: 100
+        monthlyCreditsRenewAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Subscription credit renewal timestamp, or null when renewal details are unavailable.
+          example: '2026-06-11T10:00:00.000Z'
+    BalanceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - balance
+      properties:
+        balance:
+          $ref: '#/components/schemas/CreditBalance'
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
+  securitySchemes:
+    bearerApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Media Caption API key
+      description: 'Use `Authorization: Bearer mc_live_xxx`.'
+    headerApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Alternative API key header.

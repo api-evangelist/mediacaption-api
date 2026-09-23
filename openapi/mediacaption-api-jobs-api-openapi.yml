@@ -1,0 +1,494 @@
+openapi: 3.2.0
+info:
+  title: Media Caption Public Jobs API
+  version: 1.0.0
+  description: 'Public API for reading account and credit balance details, fetching YouTube
+
+    transcripts, creating bulk transcript jobs, polling jobs, retrieving retained
+
+    transcriptions, and receiving job-level webhooks.'
+  contact:
+    name: Media Caption
+    url: https://mediacaption.io
+  license:
+    name: Proprietary
+    url: https://mediacaption.io/terms
+servers:
+- url: https://api.mediacaption.io/v1
+  description: Production
+security:
+- bearerApiKey: []
+- headerApiKey: []
+tags:
+- name: Jobs
+  description: Async job status and item result endpoints.
+paths:
+  /transcripts/bulk:
+    post:
+      tags:
+      - Jobs
+      summary: Create a bulk public transcript job
+      description: Creates an async job for 1 to 100 public YouTube transcript lookups and requires an active dashboard webhook ID for the final job-level event. The API reserves 1 credit per item when the job is accepted and settles credits after all items finish.
+      operationId: createBulkTranscriptJob
+      security:
+      - bearerApiKey: []
+      - headerApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkTranscriptRequest'
+      responses:
+        '202':
+          description: Job accepted
+          headers:
+            Location:
+              description: Relative URL for polling the accepted job.
+              schema:
+                type: string
+                example: /v1/jobs/job_01jz7m91bxkpbqha0wt8whm76r
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/XRateLimitLimit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/XRateLimitRemaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/XRateLimitReset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkTranscriptAcceptedResponse'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientCredits'
+        '429':
+          $ref: '#/components/responses/ConcurrentJobLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /jobs/{id}:
+    get:
+      tags:
+      - Jobs
+      summary: Fetch a bulk job
+      description: Returns job status, progress, credit totals, item summaries, and a cursor for additional items.
+      operationId: getJob
+      security:
+      - bearerApiKey: []
+      - headerApiKey: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^job_[A-Za-z0-9_-]+$
+        example: job_01jz7m91bxkpbqha0wt8whm76r
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 100
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          description: Opaque cursor returned as nextCursor from the previous response.
+      responses:
+        '200':
+          description: Job found
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  responses:
+    InsufficientCredits:
+      description: Not enough credits to start processing
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: insufficient_credits
+              message: Insufficient credits.
+    InvalidRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing:
+              value:
+                error:
+                  code: missing_api_key
+                  message: Missing API key.
+            invalid:
+              value:
+                error:
+                  code: invalid_api_key
+                  message: Invalid API key.
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ConcurrentJobLimitExceeded:
+      description: Concurrent bulk job limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: concurrent_job_limit_exceeded
+              message: Concurrent API job limit exceeded. Please wait for active jobs to finish.
+  schemas:
+    BulkTranscriptItemRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        externalId:
+          type: string
+          description: Customer-provided item ID returned in job results and webhooks.
+        url:
+          type: string
+          format: uri
+        videoId:
+          type: string
+        language:
+          $ref: '#/components/schemas/LanguageTag'
+      anyOf:
+      - required:
+        - url
+      - required:
+        - videoId
+    BulkTranscriptAcceptedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - jobId
+      - type
+      - status
+      - itemCount
+      - creditsFrozen
+      properties:
+        jobId:
+          type: string
+          example: job_01jz7m91bxkpbqha0wt8whm76r
+        type:
+          type: string
+          enum:
+          - public_transcripts_bulk
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        itemCount:
+          type: integer
+          example: 2
+        creditsFrozen:
+          type: integer
+          example: 2
+    LanguageTag:
+      type: string
+      pattern: ^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$
+      example: en
+    JobItem:
+      type: object
+      additionalProperties: false
+      required:
+      - externalId
+      - status
+      - sourceType
+      - sourceUrl
+      - videoId
+      - language
+      - transcriptionId
+      - durationSec
+      - creditsFrozen
+      - creditsCharged
+      - creditsRefunded
+      - createdAt
+      - completedAt
+      properties:
+        externalId:
+          type:
+          - string
+          - 'null'
+        status:
+          $ref: '#/components/schemas/JobItemStatus'
+        sourceType:
+          type: string
+          enum:
+          - youtube
+        sourceUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+        videoId:
+          type:
+          - string
+          - 'null'
+        language:
+          type:
+          - string
+          - 'null'
+        transcriptionId:
+          type:
+          - string
+          - 'null'
+        durationSec:
+          type:
+          - number
+          - 'null'
+        creditsFrozen:
+          type: integer
+        creditsCharged:
+          type: integer
+        creditsRefunded:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        error:
+          $ref: '#/components/schemas/ItemError'
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+    Job:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - type
+      - status
+      - progress
+      - itemCount
+      - completedCount
+      - failedCount
+      - creditsFrozen
+      - creditsCharged
+      - creditsRefunded
+      - createdAt
+      - startedAt
+      - completedAt
+      - items
+      - nextCursor
+      properties:
+        id:
+          type: string
+          example: job_01jz7m91bxkpbqha0wt8whm76r
+        type:
+          type: string
+          enum:
+          - public_transcripts_bulk
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        itemCount:
+          type: integer
+        completedCount:
+          type: integer
+        failedCount:
+          type: integer
+        creditsFrozen:
+          type: integer
+        creditsCharged:
+          type: integer
+        creditsRefunded:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobItem'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+    JobStatus:
+      type: string
+      enum:
+      - queued
+      - processing
+      - completed
+      - completed_with_errors
+      - failed
+      - canceled
+    ErrorCode:
+      type: string
+      enum:
+      - concurrent_job_limit_exceeded
+      - geo_restricted
+      - invalid_api_key
+      - invalid_request
+      - insufficient_credits
+      - internal_error
+      - missing_api_key
+      - not_found
+      - public_api_rate_limited
+      - single_transcript_rate_limited
+      - transcription_expired
+      - transcript_unavailable
+      - video_unavailable
+      - webhook_not_found
+      - youtube_blocked
+      - youtube_rate_limited
+    BulkTranscriptRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - webhookId
+      - items
+      properties:
+        webhookId:
+          type: string
+          description: '**Required** active dashboard webhook ID for one final job-level event.'
+          example: wh_01jz7m8a3yk9pnx2g6bc8n4a8m
+        items:
+          type: array
+          description: '**Required** array of public transcript requests.'
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/BulkTranscriptItemRequest'
+    JobItemStatus:
+      type: string
+      enum:
+      - queued
+      - processing
+      - completed
+      - failed
+    ItemError:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+          example: transcript_unavailable
+        message:
+          type: string
+          example: No public transcript is available for this video.
+  headers:
+    XRateLimitRemaining:
+      description: Requests remaining in the current fixed window.
+      schema:
+        type: integer
+        example: 58
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
+    XRateLimitLimit:
+      description: Maximum requests allowed in the current fixed window.
+      schema:
+        type: integer
+        example: 60
+    XRateLimitReset:
+      description: ISO 8601 timestamp when the current fixed window resets.
+      schema:
+        type: string
+        format: date-time
+        example: '2026-05-11T10:01:00.000Z'
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+  securitySchemes:
+    bearerApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Media Caption API key
+      description: 'Use `Authorization: Bearer mc_live_xxx`.'
+    headerApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Alternative API key header.
