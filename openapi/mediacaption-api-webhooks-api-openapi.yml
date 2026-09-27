@@ -97,6 +97,13 @@ components:
           default: false
         data:
           $ref: '#/components/schemas/WebhookJobData'
+    JobItemStatus:
+      type: string
+      enum:
+      - queued
+      - processing
+      - completed
+      - failed
     WebhookJobData:
       type: object
       additionalProperties: false
@@ -141,13 +148,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/WebhookJobItem'
-    JobItemStatus:
-      type: string
-      enum:
-      - queued
-      - processing
-      - completed
-      - failed
     WebhookJobItem:
       type: object
       additionalProperties: false
@@ -181,6 +181,12 @@ components:
         message:
           type: string
           example: No public transcript is available for this video.
+    WebhookEventType:
+      type: string
+      enum:
+      - job.completed
+      - job.completed_with_errors
+      - job.failed
     JobStatus:
       type: string
       enum:
@@ -190,12 +196,6 @@ components:
       - completed_with_errors
       - failed
       - canceled
-    WebhookEventType:
-      type: string
-      enum:
-      - job.completed
-      - job.completed_with_errors
-      - job.failed
   securitySchemes:
     bearerApiKey:
       type: http
