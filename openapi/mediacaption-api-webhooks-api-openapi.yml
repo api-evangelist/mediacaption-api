@@ -62,48 +62,28 @@ webhooks:
               $ref: '#/components/schemas/WebhookEvent'
 components:
   schemas:
-    WebhookEvent:
+    ItemError:
       type: object
       additionalProperties: false
       required:
-      - id
-      - type
-      - eventId
-      - eventType
-      - createdAt
-      - apiVersion
-      - data
+      - code
+      - message
       properties:
-        id:
+        code:
           type: string
-          example: evt_job_01jz7m91bxkpbqha0wt8whm76r_job.completed
-        type:
-          $ref: '#/components/schemas/WebhookEventType'
-        eventId:
+          example: transcript_unavailable
+        message:
           type: string
-        eventType:
-          $ref: '#/components/schemas/WebhookEventType'
-        createdAt:
-          type: string
-          format: date-time
-        apiVersion:
-          type: string
-          example: '2026-05-11'
-        livemode:
-          type: boolean
-          default: true
-        test:
-          type: boolean
-          default: false
-        data:
-          $ref: '#/components/schemas/WebhookJobData'
-    JobItemStatus:
+          example: No public transcript is available for this video.
+    JobStatus:
       type: string
       enum:
       - queued
       - processing
       - completed
+      - completed_with_errors
       - failed
+      - canceled
     WebhookJobData:
       type: object
       additionalProperties: false
@@ -148,6 +128,47 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/WebhookJobItem'
+    WebhookEvent:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - type
+      - eventId
+      - eventType
+      - createdAt
+      - apiVersion
+      - data
+      properties:
+        id:
+          type: string
+          example: evt_job_01jz7m91bxkpbqha0wt8whm76r_job.completed
+        type:
+          $ref: '#/components/schemas/WebhookEventType'
+        eventId:
+          type: string
+        eventType:
+          $ref: '#/components/schemas/WebhookEventType'
+        createdAt:
+          type: string
+          format: date-time
+        apiVersion:
+          type: string
+          example: '2026-05-11'
+        livemode:
+          type: boolean
+          default: true
+        test:
+          type: boolean
+          default: false
+        data:
+          $ref: '#/components/schemas/WebhookJobData'
+    WebhookEventType:
+      type: string
+      enum:
+      - job.completed
+      - job.completed_with_errors
+      - job.failed
     WebhookJobItem:
       type: object
       additionalProperties: false
@@ -168,34 +189,13 @@ components:
           type: string
         error:
           $ref: '#/components/schemas/ItemError'
-    ItemError:
-      type: object
-      additionalProperties: false
-      required:
-      - code
-      - message
-      properties:
-        code:
-          type: string
-          example: transcript_unavailable
-        message:
-          type: string
-          example: No public transcript is available for this video.
-    WebhookEventType:
-      type: string
-      enum:
-      - job.completed
-      - job.completed_with_errors
-      - job.failed
-    JobStatus:
+    JobItemStatus:
       type: string
       enum:
       - queued
       - processing
       - completed
-      - completed_with_errors
       - failed
-      - canceled
   securitySchemes:
     bearerApiKey:
       type: http

@@ -252,17 +252,110 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
+  parameters:
+    UploadId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^upl_[0-9a-fA-F-]{36}$
+      example: upl_3f6e5c6a-0d31-4f8c-9b1d-7f3b9e6a2c11
+  responses:
+    InsufficientCredits:
+      description: Not enough credits to start processing
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: insufficient_credits
+              message: Insufficient credits.
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing:
+              value:
+                error:
+                  code: missing_api_key
+                  message: Missing API key.
+            invalid:
+              value:
+                error:
+                  code: invalid_api_key
+                  message: Invalid API key.
+    InvalidRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
   schemas:
-    UploadPartUrlRequest:
+    ErrorResponse:
       type: object
       additionalProperties: false
       required:
-      - partNumber
+      - error
       properties:
-        partNumber:
-          type: integer
-          minimum: 1
-          maximum: 10000
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+    UploadStatus:
+      type: string
+      enum:
+      - initiated
+      - uploading
+      - uploaded
+      - processing
+      - awaiting_credits
+      - completed
+      - failed
+      - aborted
     ErrorCode:
       type: string
       enum:
@@ -282,6 +375,94 @@ components:
       - webhook_not_found
       - youtube_blocked
       - youtube_rate_limited
+    UploadPartUrlRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - partNumber
+      properties:
+        partNumber:
+          type: integer
+          minimum: 1
+          maximum: 10000
+    UploadCompleteRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - parts
+      properties:
+        parts:
+          type: array
+          minItems: 1
+          maxItems: 10000
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - partNumber
+            - etag
+            properties:
+              partNumber:
+                type: integer
+                minimum: 1
+                maximum: 10000
+              etag:
+                type: string
+    UploadRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - filename
+      - contentType
+      - sizeBytes
+      - durationSec
+      properties:
+        filename:
+          type: string
+          maxLength: 400
+          example: meeting.mp4
+        contentType:
+          type: string
+          description: An audio/* or video/* media type.
+          example: video/mp4
+        sizeBytes:
+          type: integer
+          minimum: 1
+          maximum: 3000000000
+        durationSec:
+          type: integer
+          minimum: 1
+          description: Client-measured duration used for the pre-upload credit reservation.
+    UploadOperationResponse:
+      type: object
+      additionalProperties: true
+      required:
+      - id
+      - status
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/UploadStatus'
+        requiredCredits:
+          type: integer
+        additionalCredits:
+          type: integer
+    UploadPartUrlResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - partNumber
+      - uploadUrl
+      - expiresInSeconds
+      properties:
+        partNumber:
+          type: integer
+        uploadUrl:
+          type: string
+          format: uri
+        expiresInSeconds:
+          type: integer
     UploadStatusResponse:
       type: object
       additionalProperties: false
@@ -379,187 +560,6 @@ components:
         expiresAt:
           type: string
           format: date-time
-    ErrorResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      properties:
-        error:
-          type: object
-          additionalProperties: false
-          required:
-          - code
-          - message
-          properties:
-            code:
-              $ref: '#/components/schemas/ErrorCode'
-            message:
-              type: string
-    UploadPartUrlResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - partNumber
-      - uploadUrl
-      - expiresInSeconds
-      properties:
-        partNumber:
-          type: integer
-        uploadUrl:
-          type: string
-          format: uri
-        expiresInSeconds:
-          type: integer
-    UploadCompleteRequest:
-      type: object
-      additionalProperties: false
-      required:
-      - parts
-      properties:
-        parts:
-          type: array
-          minItems: 1
-          maxItems: 10000
-          items:
-            type: object
-            additionalProperties: false
-            required:
-            - partNumber
-            - etag
-            properties:
-              partNumber:
-                type: integer
-                minimum: 1
-                maximum: 10000
-              etag:
-                type: string
-    UploadOperationResponse:
-      type: object
-      additionalProperties: true
-      required:
-      - id
-      - status
-      properties:
-        id:
-          type: string
-        status:
-          $ref: '#/components/schemas/UploadStatus'
-        requiredCredits:
-          type: integer
-        additionalCredits:
-          type: integer
-    UploadRequest:
-      type: object
-      additionalProperties: false
-      required:
-      - filename
-      - contentType
-      - sizeBytes
-      - durationSec
-      properties:
-        filename:
-          type: string
-          maxLength: 400
-          example: meeting.mp4
-        contentType:
-          type: string
-          description: An audio/* or video/* media type.
-          example: video/mp4
-        sizeBytes:
-          type: integer
-          minimum: 1
-          maximum: 3000000000
-        durationSec:
-          type: integer
-          minimum: 1
-          description: Client-measured duration used for the pre-upload credit reservation.
-    UploadStatus:
-      type: string
-      enum:
-      - initiated
-      - uploading
-      - uploaded
-      - processing
-      - awaiting_credits
-      - completed
-      - failed
-      - aborted
-  responses:
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    RateLimited:
-      description: Rate limit exceeded
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Unauthorized:
-      description: Missing or invalid API key
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            missing:
-              value:
-                error:
-                  code: missing_api_key
-                  message: Missing API key.
-            invalid:
-              value:
-                error:
-                  code: invalid_api_key
-                  message: Invalid API key.
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    InsufficientCredits:
-      description: Not enough credits to start processing
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: insufficient_credits
-              message: Insufficient credits.
-    InvalidRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-  headers:
-    XRequestId:
-      description: Request ID for troubleshooting.
-      schema:
-        type: string
-        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
-    RetryAfter:
-      description: Seconds to wait before retrying.
-      schema:
-        type: integer
-        example: 30
-  parameters:
-    UploadId:
-      name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        pattern: ^upl_[0-9a-fA-F-]{36}$
-      example: upl_3f6e5c6a-0d31-4f8c-9b1d-7f3b9e6a2c11
   securitySchemes:
     bearerApiKey:
       type: http
