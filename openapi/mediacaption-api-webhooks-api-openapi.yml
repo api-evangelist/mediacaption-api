@@ -97,6 +97,26 @@ components:
           default: false
         data:
           $ref: '#/components/schemas/WebhookJobData'
+    WebhookJobItem:
+      type: object
+      additionalProperties: false
+      required:
+      - itemId
+      - externalId
+      - status
+      properties:
+        itemId:
+          type: integer
+        externalId:
+          type:
+          - string
+          - 'null'
+        status:
+          $ref: '#/components/schemas/JobItemStatus'
+        transcriptionId:
+          type: string
+        error:
+          $ref: '#/components/schemas/ItemError'
     WebhookJobData:
       type: object
       additionalProperties: false
@@ -141,6 +161,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/WebhookJobItem'
+    WebhookEventType:
+      type: string
+      enum:
+      - job.completed
+      - job.completed_with_errors
+      - job.failed
     JobItemStatus:
       type: string
       enum:
@@ -148,26 +174,15 @@ components:
       - processing
       - completed
       - failed
-    WebhookJobItem:
-      type: object
-      additionalProperties: false
-      required:
-      - itemId
-      - externalId
-      - status
-      properties:
-        itemId:
-          type: integer
-        externalId:
-          type:
-          - string
-          - 'null'
-        status:
-          $ref: '#/components/schemas/JobItemStatus'
-        transcriptionId:
-          type: string
-        error:
-          $ref: '#/components/schemas/ItemError'
+    JobStatus:
+      type: string
+      enum:
+      - queued
+      - processing
+      - completed
+      - completed_with_errors
+      - failed
+      - canceled
     ItemError:
       type: object
       additionalProperties: false
@@ -181,21 +196,6 @@ components:
         message:
           type: string
           example: No public transcript is available for this video.
-    JobStatus:
-      type: string
-      enum:
-      - queued
-      - processing
-      - completed
-      - completed_with_errors
-      - failed
-      - canceled
-    WebhookEventType:
-      type: string
-      enum:
-      - job.completed
-      - job.completed_with_errors
-      - job.failed
   securitySchemes:
     bearerApiKey:
       type: http

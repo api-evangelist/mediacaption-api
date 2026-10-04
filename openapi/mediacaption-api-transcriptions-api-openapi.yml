@@ -115,6 +115,82 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
+  responses:
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing:
+              value:
+                error:
+                  code: missing_api_key
+                  message: Missing API key.
+            invalid:
+              value:
+                error:
+                  code: invalid_api_key
+                  message: Invalid API key.
+    TranscriptionExpired:
+      description: Transcription retention window has ended
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: transcription_expired
+              message: This transcription has expired and is no longer available.
+    InsufficientCredits:
+      description: Not enough credits to start processing
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: insufficient_credits
+              message: Insufficient credits.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InvalidRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
   schemas:
     CloudTranscriptionRequest:
       type: object
@@ -150,25 +226,6 @@ components:
       - webhook_not_found
       - youtube_blocked
       - youtube_rate_limited
-    TranscriptSegment:
-      type: object
-      additionalProperties: false
-      required:
-      - startSec
-      - durationSec
-      - text
-      properties:
-        startSec:
-          type: number
-          minimum: 0
-          example: 0
-        durationSec:
-          type: number
-          minimum: 0
-          example: 2.4
-        text:
-          type: string
-          example: Example transcript text
     Transcription:
       type: object
       additionalProperties: false
@@ -243,6 +300,25 @@ components:
               $ref: '#/components/schemas/ErrorCode'
             message:
               type: string
+    TranscriptSegment:
+      type: object
+      additionalProperties: false
+      required:
+      - startSec
+      - durationSec
+      - text
+      properties:
+        startSec:
+          type: number
+          minimum: 0
+          example: 0
+        durationSec:
+          type: number
+          minimum: 0
+          example: 2.4
+        text:
+          type: string
+          example: Example transcript text
     CloudTranscriptionAcceptedResponse:
       type: object
       additionalProperties: false
@@ -274,82 +350,6 @@ components:
           type: integer
         statusUrl:
           type: string
-  responses:
-    RateLimited:
-      description: Rate limit exceeded
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Unauthorized:
-      description: Missing or invalid API key
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            missing:
-              value:
-                error:
-                  code: missing_api_key
-                  message: Missing API key.
-            invalid:
-              value:
-                error:
-                  code: invalid_api_key
-                  message: Invalid API key.
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    InsufficientCredits:
-      description: Not enough credits to start processing
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: insufficient_credits
-              message: Insufficient credits.
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    InvalidRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    TranscriptionExpired:
-      description: Transcription retention window has ended
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: transcription_expired
-              message: This transcription has expired and is no longer available.
-  headers:
-    RetryAfter:
-      description: Seconds to wait before retrying.
-      schema:
-        type: integer
-        example: 30
-    XRequestId:
-      description: Request ID for troubleshooting.
-      schema:
-        type: string
-        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
   securitySchemes:
     bearerApiKey:
       type: http
