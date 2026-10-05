@@ -1,0 +1,12 @@
+{
+ "url": "https://www.mediacaption.io/docs/openapi/mediacaption.v1.yaml",
+ "requested_url": "https://www.mediacaption.io/docs/openapi/mediacaption.v1.yaml",
+ "status": 200,
+ "content_type": "application/yaml; charset=utf-8",
+ "bytes": 45038,
+ "sha256": "2d5fad5f85d217796da400c4896e71771e6a8298f765fc2ee658bf3d159c7466",
+ "fetched_at": "2026-10-04",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "equivalent",
+ "note": "Re-fetched from the provider by verify-openapi-sources.py; the provider's current document describes the same operations (Jaccard 1.0), but the bytes differ, so the archive is an earlier or reformatted copy."
+}
