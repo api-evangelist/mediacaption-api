@@ -52,84 +52,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
-  headers:
-    RetryAfter:
-      description: Seconds to wait before retrying.
-      schema:
-        type: integer
-        example: 30
-    XRequestId:
-      description: Request ID for troubleshooting.
-      schema:
-        type: string
-        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
-  responses:
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Unauthorized:
-      description: Missing or invalid API key
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            missing:
-              value:
-                error:
-                  code: missing_api_key
-                  message: Missing API key.
-            invalid:
-              value:
-                error:
-                  code: invalid_api_key
-                  message: Invalid API key.
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    RateLimited:
-      description: Rate limit exceeded
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
   schemas:
-    UserResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - user
-      properties:
-        user:
-          $ref: '#/components/schemas/ApiUser'
-    ErrorCode:
-      type: string
-      enum:
-      - concurrent_job_limit_exceeded
-      - geo_restricted
-      - invalid_api_key
-      - invalid_request
-      - insufficient_credits
-      - internal_error
-      - missing_api_key
-      - not_found
-      - public_api_rate_limited
-      - single_transcript_rate_limited
-      - transcription_expired
-      - transcript_unavailable
-      - video_unavailable
-      - webhook_not_found
-      - youtube_blocked
-      - youtube_rate_limited
     ErrorResponse:
       type: object
       additionalProperties: false
@@ -147,6 +70,14 @@ components:
               $ref: '#/components/schemas/ErrorCode'
             message:
               type: string
+    UserResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - user
+      properties:
+        user:
+          $ref: '#/components/schemas/ApiUser'
     ApiUser:
       type: object
       additionalProperties: false
@@ -172,6 +103,75 @@ components:
           type: string
           format: date-time
           description: Account creation timestamp.
+    ErrorCode:
+      type: string
+      enum:
+      - concurrent_job_limit_exceeded
+      - geo_restricted
+      - invalid_api_key
+      - invalid_request
+      - insufficient_credits
+      - internal_error
+      - missing_api_key
+      - not_found
+      - public_api_rate_limited
+      - single_transcript_rate_limited
+      - transcription_expired
+      - transcript_unavailable
+      - video_unavailable
+      - webhook_not_found
+      - youtube_blocked
+      - youtube_rate_limited
+  headers:
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing:
+              value:
+                error:
+                  code: missing_api_key
+                  message: Missing API key.
+            invalid:
+              value:
+                error:
+                  code: invalid_api_key
+                  message: Invalid API key.
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
   securitySchemes:
     bearerApiKey:
       type: http

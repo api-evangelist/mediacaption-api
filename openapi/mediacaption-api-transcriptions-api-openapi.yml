@@ -115,98 +115,24 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 components:
-  headers:
-    RetryAfter:
-      description: Seconds to wait before retrying.
-      schema:
-        type: integer
-        example: 30
-    XRequestId:
-      description: Request ID for troubleshooting.
-      schema:
-        type: string
-        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
-  responses:
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Unauthorized:
-      description: Missing or invalid API key
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          examples:
-            missing:
-              value:
-                error:
-                  code: missing_api_key
-                  message: Missing API key.
-            invalid:
-              value:
-                error:
-                  code: invalid_api_key
-                  message: Invalid API key.
-    TranscriptionExpired:
-      description: Transcription retention window has ended
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: transcription_expired
-              message: This transcription has expired and is no longer available.
-    InsufficientCredits:
-      description: Not enough credits to start processing
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            error:
-              code: insufficient_credits
-              message: Insufficient credits.
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    RateLimited:
-      description: Rate limit exceeded
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    InvalidRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
   schemas:
-    CloudTranscriptionRequest:
+    ErrorResponse:
       type: object
       additionalProperties: false
       required:
-      - sourceUrl
+      - error
       properties:
-        sourceUrl:
-          type: string
-          format: uri
-          maxLength: 8192
-          description: Public or presigned HTTPS URL for an existing cloud media object.
-        filename:
-          type: string
-          maxLength: 400
-          description: Optional display filename; defaults to the URL path basename.
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
     ErrorCode:
       type: string
       enum:
@@ -283,23 +209,6 @@ components:
             $ref: '#/components/schemas/TranscriptSegment'
         error:
           type: string
-    ErrorResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      properties:
-        error:
-          type: object
-          additionalProperties: false
-          required:
-          - code
-          - message
-          properties:
-            code:
-              $ref: '#/components/schemas/ErrorCode'
-            message:
-              type: string
     TranscriptSegment:
       type: object
       additionalProperties: false
@@ -319,6 +228,21 @@ components:
         text:
           type: string
           example: Example transcript text
+    CloudTranscriptionRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - sourceUrl
+      properties:
+        sourceUrl:
+          type: string
+          format: uri
+          maxLength: 8192
+          description: Public or presigned HTTPS URL for an existing cloud media object.
+        filename:
+          type: string
+          maxLength: 400
+          description: Optional display filename; defaults to the URL path basename.
     CloudTranscriptionAcceptedResponse:
       type: object
       additionalProperties: false
@@ -350,6 +274,82 @@ components:
           type: integer
         statusUrl:
           type: string
+  headers:
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing:
+              value:
+                error:
+                  code: missing_api_key
+                  message: Missing API key.
+            invalid:
+              value:
+                error:
+                  code: invalid_api_key
+                  message: Invalid API key.
+    TranscriptionExpired:
+      description: Transcription retention window has ended
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: transcription_expired
+              message: This transcription has expired and is no longer available.
+    InsufficientCredits:
+      description: Not enough credits to start processing
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: insufficient_credits
+              message: Insufficient credits.
+    InvalidRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
   securitySchemes:
     bearerApiKey:
       type: http
