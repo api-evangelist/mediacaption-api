@@ -122,18 +122,28 @@ components:
       - webhook_not_found
       - youtube_blocked
       - youtube_rate_limited
-  headers:
-    XRequestId:
-      description: Request ID for troubleshooting.
-      schema:
-        type: string
-        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
-    RetryAfter:
-      description: Seconds to wait before retrying.
-      schema:
-        type: integer
-        example: 30
   responses:
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
     Unauthorized:
       description: Missing or invalid API key
       content:
@@ -151,27 +161,17 @@ components:
                 error:
                   code: invalid_api_key
                   message: Invalid API key.
-    RateLimited:
-      description: Rate limit exceeded
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 30
+    XRequestId:
+      description: Request ID for troubleshooting.
+      schema:
+        type: string
+        example: req_01jz7mb36gp7h2nm5rwd1ah4zz
   securitySchemes:
     bearerApiKey:
       type: http
