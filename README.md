@@ -1,4 +1,4 @@
-# mediacaption-api
+# MediaCaption API
 
 <!-- API-EVANGELIST-PROVENANCE:BEGIN -->
 > ### About this repository
@@ -65,3 +65,126 @@
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
 A credit-billed REST API for retrieving public YouTube transcripts, with single and bulk transcript jobs, job-level webhooks, and AI transcription/translation capabilities. Backed by a public OpenAPI 3.1 contract with bearer/X-API-Key authentication.
+
+**Areas:** YouTube · Transcription · Captions · Subtitles · Video · REST · OpenAPI · Webhook · Speech-to-Text · Media · Developer Tools
+
+## MediaCaption API on APIs.io
+
+Everything profiled for MediaCaption API is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/mediacaption-api/](https://apis.io/providers/mediacaption-api/)** — or go straight to one of the APIs or properties below.
+
+### APIs (7)
+
+- [MediaCaption API Balance API](https://apis.io/apis/mediacaption-api/mediacaption-api-balance-api/) — Authenticated account credit balance endpoints.
+- [MediaCaption API Jobs API](https://apis.io/apis/mediacaption-api/mediacaption-api-jobs-api/) — Async job status and item result endpoints.
+- [MediaCaption API Transcriptions API](https://apis.io/apis/mediacaption-api/mediacaption-api-transcriptions-api/) — Retained transcript lookup endpoints.
+- [MediaCaption API Transcripts API](https://apis.io/apis/mediacaption-api/mediacaption-api-transcripts-api/) — Synchronous and async public YouTube transcript endpoints.
+- [MediaCaption API Uploads API](https://apis.io/apis/mediacaption-api/mediacaption-api-uploads-api/) — Multipart media upload and AI transcription endpoints.
+- [MediaCaption API User API](https://apis.io/apis/mediacaption-api/mediacaption-api-user-api/) — Authenticated account endpoints.
+- [MediaCaption API Webhooks API](https://apis.io/apis/mediacaption-api/mediacaption-api-webhooks-api/) — Job-level webhook event contracts.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### AsyncAPI (1)
+
+Event-driven and webhook contracts.
+
+- [Mediacaption Api Webhooks](https://apis.io/asyncapis/mediacaption-api/mediacaption-api-webhooks/)
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [mediacaption-api-mcp.yml](https://apis.io/servers/mediacaption-api/mediacaption-api-mcp-yml/)
+
+#### Overlays (1)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Mediacaption Api Openapi Overlay](https://apis.io/overlays/mediacaption-api/mediacaption-api-openapi-overlay/)
+
+#### Security (2)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Mediacaption Api Authentication](https://apis.io/security/mediacaption-api/mediacaption-api-authentication/)
+- [Mediacaption Api Domain Security](https://apis.io/security/mediacaption-api/mediacaption-api-domain-security/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Mediacaption Api Plans Pricing](https://apis.io/plans/mediacaption-api/mediacaption-api-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Mediacaption Api Rate Limits](https://apis.io/rate-limits/mediacaption-api/mediacaption-api-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://mediacaption.io)
+- [Pricing](https://www.mediacaption.io/pricing)
+- [Support](https://www.mediacaption.io/report)
+- [Changelog](https://www.mediacaption.io/docs/changelog)
+- [Terms of service](https://www.mediacaption.io/terms)
+- [Privacy policy](https://www.mediacaption.io/privacy)
+
+## API Evangelist rating
+
+**Kin Score 52.4** — developing · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 60.7 |
+| Contract quality | 60.6 |
+| Contract governance | 4.5 |
+| Operational transparency | 55.3 |
+| Developer ergonomics | 47.0 |
+| Access clarity | 52.6 |
+
+**Agent readiness 47.0** — agent-ready (gated down from agent-native)
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | documented (partial credit) |
+| MCP Server | — |
+| Auth Clarity | served (partial credit) |
+| Idempotency | — |
+| Error Semantics | verified |
+| OpenAPI Examples | partial |
+| Rate Limit Signal | verified |
+| Event Surface Described | yes |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+| Pagination Ratio | paginated |
+| Operation Distinctiveness | distinct |
+
+**Regulatory alignment 24.5** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/mediacaption-api/](https://apis.io/providers/mediacaption-api/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for MediaCaption API: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/mediacaption-api/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
