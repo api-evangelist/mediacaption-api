@@ -1,0 +1,115 @@
+# Pricing transcribed from the provider's own page — see provenance. Numbers are quoted, not derived.
+generated: '2026-10-28'
+method: searched
+source: https://www.mediacaption.io/pricing
+sources:
+- https://www.mediacaption.io/pricing
+provenance:
+  tool: engine/economics/harvest_pricing.py
+  run: 20261028T161713
+  grounding: every price_text was found verbatim in the fetched page text
+audience: developer-api
+pricing_basis: per-call
+delivery:
+  delivery: managed
+  method: page
+  read: '2026-10-28'
+  managed_tier: Premium
+published: true
+note: 'Credit-based pricing: 1 credit per minute of AI transcription, 1 credit per caption track/summary/insights,
+  1 credit per 100,000 characters translation. API access included with signup.'
+plan_count: 5
+currency: USD
+plans:
+- name: 'Starter top-up : 50 credits'
+  price_text: $5
+  price: 5
+  currency: USD
+  period: one-time
+  unit: credit pack
+  included_quota: 50 credits
+  overage: $0.10 / credit
+- name: 'Creator pack : 200 credits'
+  price_text: $10
+  price: 10
+  currency: USD
+  period: one-time
+  unit: credit pack
+  included_quota: 200 credits
+  overage: $0.05 / credit
+- name: 'Studio pack : 500 credits'
+  price_text: $25
+  price: 25
+  currency: USD
+  period: one-time
+  unit: credit pack
+  included_quota: 500 credits
+  overage: $0.05 / credit
+- name: 'Pro pack : 1,000 credits'
+  price_text: $50
+  price: 50
+  currency: USD
+  period: one-time
+  unit: credit pack
+  included_quota: 1,000 credits
+  overage: $0.05 / credit
+- name: Premium
+  price_text: $5 / month
+  price: 5
+  currency: USD
+  period: month
+  unit: subscription
+  included_quota: 100 AI credits each month
+  overage: Monthly credits reset each billing cycle
+rate_limit_statements:
+- 10 single transcript requests/min, 60 general requests/min, 5 concurrent bulk jobs, and 100 items per
+  bulk job.
+x-canonical:
+  generated: '2026-11-01'
+  vocabulary: engine/economics/plans-canonical.yml
+  models:
+  - hybrid
+  units:
+  - credit
+  - period
+  plans:
+  - name: 'Starter top-up : 50 credits'
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - credit
+    periods:
+    - one-time
+  - name: 'Creator pack : 200 credits'
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - credit
+    periods:
+    - one-time
+  - name: 'Studio pack : 500 credits'
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - credit
+    periods:
+    - one-time
+  - name: 'Pro pack : 1,000 credits'
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - credit
+    periods:
+    - one-time
+  - name: Premium
+    access: other
+    model: hybrid
+    model_how: derived
+    units:
+    - period
+    periods:
+    - month
