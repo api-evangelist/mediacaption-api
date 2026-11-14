@@ -2,6 +2,7 @@
 generated: '2026-10-28'
 method: searched
 source: https://www.mediacaption.io/pricing
+name: MediaCaption API API Plans
 sources:
 - https://www.mediacaption.io/pricing
 provenance:
@@ -65,7 +66,7 @@ rate_limit_statements:
 - 10 single transcript requests/min, 60 general requests/min, 5 concurrent bulk jobs, and 100 items per
   bulk job.
 x-canonical:
-  generated: '2026-11-06'
+  generated: '2026-11-13'
   vocabulary: engine/economics/plans-canonical.yml
   models:
   - hybrid
